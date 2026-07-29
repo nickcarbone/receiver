@@ -1,0 +1,5 @@
+# Personal listening history — regenerates automatically, not meant to be shared
+data/history.json
+
+# OS noise
+.DS_Store

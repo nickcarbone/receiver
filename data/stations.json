@@ -1,0 +1,247 @@
+[
+  {
+    "id": "monocle",
+    "name": "Monocle 24",
+    "cat": "Talk",
+    "city": "London",
+    "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/MONOCLE_24AAC.aac"
+  },
+  {
+    "id": "riviera",
+    "name": "Riviera Radio",
+    "cat": "Top 40",
+    "city": "Monaco",
+    "url": "https://media-ssl.musicradio.com/RivieraRadio"
+  },
+  {
+    "id": "kerrang",
+    "name": "Kerrang!",
+    "cat": "Rock",
+    "city": "London",
+    "url": "https://stream-al.hellorayo.co.uk/kerrang.aac?direct=true",
+    "note": "Geo-fenced to the UK. Returns HTTP 500 from non-UK IPs, including this sandbox and likely your Mac."
+  },
+  {
+    "id": "nrj-france",
+    "name": "NRJ",
+    "cat": "Top 40",
+    "city": "Paris",
+    "country": "France",
+    "url": "https://streaming.nrjaudio.fm/ou5k6tirv93h"
+  },
+  {
+    "id": "radio538",
+    "name": "Radio 538",
+    "cat": "Top 40",
+    "city": "Amsterdam",
+    "country": "Netherlands",
+    "url": "http://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3"
+  },
+  {
+    "id": "anr",
+    "name": "ANR",
+    "cat": "Top 40",
+    "city": "Aabenraa",
+    "country": "Denmark",
+    "url": null,
+    "note": "Site is behind a bot challenge (HTTP 454). Capture the stream URL from your browser's Network tab and add it manually."
+  },
+  {
+    "id": "zoo-radio",
+    "name": "Zoo Radio 90.8",
+    "cat": "Top 40",
+    "city": "Thessaloniki",
+    "country": "Greece",
+    "url": "https://metromedia.live24.gr/zoo908thess"
+  },
+  {
+    "id": "otvoreni",
+    "name": "Otvoreni",
+    "cat": "Top 40",
+    "city": "Zagreb",
+    "country": "Croatia",
+    "url": "https://stream.otvoreni.hr/otvoreni"
+  },
+  {
+    "id": "stubru",
+    "name": "VRT Studio Brussel",
+    "cat": "Rock",
+    "city": "Brussels",
+    "country": "Belgium",
+    "url": "http://quantumcast.vrtcdn.be/stubru/mp3-128"
+  },
+  {
+    "id": "antena-sarajevo",
+    "name": "Antena Sarajevo",
+    "cat": "Top 40",
+    "city": "Sarajevo",
+    "country": "Bosnia & Herzegovina",
+    "url": "https://stream.rsgmedia.ba/listen/antena_sarajevo/radio.mp3"
+  },
+  {
+    "id": "radio1-slovenia",
+    "name": "Radio 1",
+    "cat": "Talk",
+    "city": "Ljubljana",
+    "country": "Slovenia",
+    "url": "https://live.radio1.si/Radio1"
+  },
+  {
+    "id": "srf3",
+    "name": "SRF 3",
+    "cat": "Rock",
+    "city": "Zurich",
+    "country": "Switzerland",
+    "url": "http://stream.srg-ssr.ch/m/drs3/mp3_128"
+  },
+  {
+    "id": "bigfm",
+    "name": "bigFM",
+    "cat": "Top 40",
+    "city": "Stuttgart",
+    "country": "Germany",
+    "url": "https://stream.bigfm.de/deutschland/mp3-128/radio-browser"
+  },
+  {
+    "id": "evropa2",
+    "name": "Evropa 2",
+    "cat": "Top 40",
+    "city": "Prague",
+    "country": "Czechia",
+    "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/EVROPA2AAC.aac"
+  },
+  {
+    "id": "classfm-hungary",
+    "name": "Class FM",
+    "cat": "Top 40",
+    "city": "Budapest",
+    "country": "Hungary",
+    "url": null,
+    "note": "Lost its FM licence in 2016 and has no active livestream. Kept in the library as a record; there is nothing to play."
+  },
+  {
+    "id": "eldoradio",
+    "name": "Eldoradio",
+    "cat": "Top 40",
+    "city": "Luxembourg City",
+    "country": "Luxembourg",
+    "url": "http://81.92.238.33/"
+  },
+  {
+    "id": "dasding",
+    "name": "DASDING",
+    "cat": "Top 40",
+    "city": "Baden-Baden",
+    "country": "Germany",
+    "url": "https://liveradio.swr.de/d245tgd/dasding/",
+    "note": "Returned HTTP 403 when tested from this sandbox's cloud IP. ARD stations commonly block datacenter IP ranges; likely to work fine from your Mac's residential connection — test on first run."
+  },
+  {
+    "id": "youfm",
+    "name": "YOU FM",
+    "cat": "Top 40",
+    "city": "Frankfurt",
+    "country": "Germany",
+    "url": null,
+    "note": "The stream URL found for YOU FM actually served DASDING's audio (icy-name confirmed it), so it's mislabeled upstream. Needs a manual capture from youfm.de's Network tab rather than a guessed URL."
+  },
+  {
+    "id": "1live",
+    "name": "1LIVE",
+    "cat": "Rock",
+    "city": "Cologne",
+    "country": "Germany",
+    "url": "https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3",
+    "note": "Returned HTTP 403 when tested from this sandbox's cloud IP, same as DASDING. Worth a quick test from your Mac before assuming it's broken."
+  },
+  {
+    "id": "fm957",
+    "name": "FM957",
+    "cat": "Top 40",
+    "city": "Reykjavik",
+    "country": "Iceland",
+    "url": "http://icecast.365net.is:8000/orbFm957.aac",
+    "note": "Connection timed out from this sandbox on port 8000 — could be a datacenter port block rather than the stream being down. Test from your Mac."
+  },
+  {
+    "id": "p3-sweden",
+    "name": "P3",
+    "cat": "Top 40",
+    "city": "Stockholm",
+    "country": "Sweden",
+    "url": "https://live1.sr.se/p3-mp3-96"
+  },
+  {
+    "id": "bbc-world-service",
+    "name": "BBC World Service",
+    "cat": "Talk",
+    "city": "London",
+    "country": "United Kingdom",
+    "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_world_service"
+  },
+  {
+    "id": "roxx",
+    "name": "ROXX",
+    "cat": "Rock",
+    "city": "Ghent",
+    "country": "Belgium",
+    "url": "http://clubfmserver.be:8000/roxx.mp3",
+    "note": "Connection timed out from this sandbox on port 8000, same pattern as FM957. Test from your Mac before ruling it out."
+  },
+  {
+    "id": "radio1-budapest",
+    "name": "Rádió 1",
+    "cat": "Top 40",
+    "city": "Budapest",
+    "country": "Hungary",
+    "url": "https://icast.connectmedia.hu/5201/live.mp3"
+  },
+  {
+    "id": "drp3",
+    "name": "DR P3",
+    "cat": "Top 40",
+    "city": "Copenhagen",
+    "country": "Denmark",
+    "url": "https://drliveradio2.akamaized.net/hls/live/2118698/drlydekstra/masterab.m3u8",
+    "kind": "hls",
+    "note": "HLS only — no MP3/AAC sibling found. Plays via hls.js in the player, but carries no ICY metadata, so no now-playing info."
+  },
+  {
+    "id": "k100",
+    "name": "K100",
+    "cat": "Top 40",
+    "city": "Reykjavik",
+    "country": "Iceland",
+    "url": null,
+    "note": "Site (mbl.is) is behind a bot challenge and no public stream directory listing was found. Needs manual capture from the Network tab."
+  },
+  {
+    "id": "star941",
+    "name": "Star 94.1",
+    "cat": "Top 40",
+    "city": "San Diego",
+    "country": "United States",
+    "url": "https://stream.revma.ihrhls.com/zc253/hls.m3u8",
+    "kind": "hls",
+    "note": "HLS only via iHeart's CDN. Plays, but no ICY metadata."
+  },
+  {
+    "id": "radio-deejay",
+    "name": "Radio Deejay",
+    "cat": "Top 40",
+    "city": "Milan",
+    "country": "Italy",
+    "url": "https://4c4b867c89244861ac216426883d1ad0.msvdn.net/radiodeejay/radiodeejay/master_ma.m3u8",
+    "kind": "hls",
+    "note": "HLS only — no MP3/AAC sibling found. No ICY metadata."
+  },
+  {
+    "id": "ffh",
+    "name": "Hit Radio FFH",
+    "cat": "Top 40",
+    "city": "Bad Vilbel",
+    "country": "Germany",
+    "url": "https://mp3.ffh.de/radioffh/hqlivestream.aac",
+    "note": "Returned HTTP 403 from this sandbox's cloud IP. Same pattern as the other German broadcasters — test from your Mac."
+  }
+]

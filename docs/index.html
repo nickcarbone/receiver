@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Receiver — Gunmetal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.15/hls.min.js"></script>
+<style>
+:root{
+  --walnut:#3a3d40; --walnut-deep:#1c1e20; --walnut-edge:#565a5e;
+  --champagne:#a8adb2; --champagne-lo:#82878c; --champagne-hi:#d4d8db;
+  --slot:#0c0d0e; --amber:#e7ecef; --amber-dim:#7b8388;
+  --cream:#e9ebec; --ink:#151617; --room:#121314;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:radial-gradient(120% 90% at 50% 0%,#232527 0%,var(--room) 55%,#08090a 100%);
+  color:var(--cream); font-family:'Archivo',system-ui,sans-serif;
+  min-height:100dvh; padding:clamp(16px,3vw,40px);
+  display:flex; align-items:flex-start; justify-content:center;
+}
+.shell{width:100%;max-width:1180px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(20px,3vw,44px)}
+@media(max-width:900px){.shell{grid-template-columns:1fr}}
+
+/* ---------- the cabinet ---------- */
+.cabinet{
+  background:linear-gradient(158deg,var(--walnut-edge) 0%,var(--walnut) 30%,#3b2619 72%,var(--walnut-deep) 100%);
+  border-radius:10px; padding:clamp(14px,2vw,22px);
+  box-shadow:0 40px 70px -30px #000,0 2px 0 rgba(255,255,255,.14) inset,0 -3px 12px rgba(0,0,0,.5) inset;
+  position:relative; overflow:hidden;
+}
+.cabinet::after{ /* wood grain */
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.16;
+  background:repeating-linear-gradient(96deg,transparent 0 2px,rgba(0,0,0,.55) 2px 3px,transparent 3px 9px);
+}
+.face{
+  background:linear-gradient(150deg,var(--champagne-hi) 0%,var(--champagne) 38%,var(--champagne-lo) 100%);
+  border-radius:5px;padding:clamp(14px,2.2vw,24px);
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:clamp(14px,2vw,26px);align-items:center;
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 -14px 30px -18px rgba(0,0,0,.6) inset;
+  position:relative;
+}
+@media(max-width:560px){.face{grid-template-columns:1fr}}
+
+/* grille = visualizer. 28 diagonal slats, each scales with a frequency band */
+.grille{position:relative;height:clamp(170px,26vw,236px);display:flex;gap:clamp(4px,.85vw,9px);align-items:center;overflow:hidden}
+.slat{
+  flex:1;background:var(--slot);border-radius:60px;
+  transform:skewX(-32deg) scaleY(.44);transform-origin:center;
+  box-shadow:0 1px 1px rgba(255,255,255,.35);
+  transition:transform .09s cubic-bezier(.2,.8,.3,1);
+  height:100%;
+}
+.stopped .slat{transform:skewX(-32deg) scaleY(.44)!important}
+
+/* circular display */
+.dial{
+  width:clamp(150px,20vw,196px);aspect-ratio:1;border-radius:50%;
+  background:linear-gradient(150deg,var(--champagne-hi),var(--champagne-lo));
+  padding:9px;box-shadow:0 8px 22px -10px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.75) inset;
+  display:grid;place-items:center;position:relative;flex-shrink:0;
+}
+.screen{
+  width:100%;height:100%;border-radius:50%;background:radial-gradient(80% 80% at 50% 30%,#1a1c1d,#08090a 100%);
+  display:grid;place-items:center;text-align:center;padding:12px;overflow:hidden;position:relative;
+  box-shadow:0 0 0 1px #3a2c1c,0 6px 18px rgba(0,0,0,.7) inset;
+}
+.screen::before{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-linear-gradient(0deg,rgba(255,255,255,.045) 0 1px,transparent 1px 3px);pointer-events:none}
+.art{width:44px;height:44px;border-radius:3px;object-fit:cover;margin:0 auto 7px;display:block;box-shadow:0 2px 8px rgba(0,0,0,.6);background:#241c14}
+.art.hidden{display:none}
+.now-title{font-family:'DM Mono',monospace;font-size:clamp(10px,1.15vw,12px);color:var(--amber);line-height:1.35;
+  text-shadow:0 0 9px rgba(232,163,61,.5);word-break:break-word;max-height:3.9em;overflow:hidden}
+.now-sub{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--amber-dim);margin-top:6px}
+
+/* controls rail */
+.rail{margin-top:clamp(12px,1.8vw,18px);display:flex;align-items:center;gap:clamp(12px,2vw,20px);flex-wrap:wrap}
+.knob{
+  width:clamp(54px,7vw,66px);aspect-ratio:1;border-radius:50%;flex-shrink:0;
+  background:conic-gradient(from 210deg,var(--champagne-lo),var(--champagne-hi) 25%,var(--champagne-lo) 50%,#5a5f63 75%,var(--champagne-lo));
+  border:none;cursor:pointer;position:relative;
+  box-shadow:0 7px 16px -6px rgba(0,0,0,.8),0 1px 0 rgba(255,255,255,.5) inset;
+}
+.knob::after{content:"";position:absolute;left:50%;top:9px;width:3px;height:15px;border-radius:3px;background:#2a2c2d;transform:translateX(-50%)}
+.knob:focus-visible{outline:2px solid var(--amber);outline-offset:4px}
+.knob[data-on="true"]::after{background:#8f1f12}
+.vol{flex:1;min-width:130px}
+.vol-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#787d81;margin-bottom:5px}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;border-radius:4px;background:#787d81;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;background:linear-gradient(150deg,var(--champagne-hi),#5a5f63);cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.5)}
+input[type=range]::-moz-range-thumb{width:17px;height:17px;border:none;border-radius:50%;background:var(--champagne)}
+.badge{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#5f6467;padding:4px 8px;border-radius:2px;border:1px solid rgba(0,0,0,.22)}
+.wordmark{position:absolute;right:clamp(14px,2.2vw,24px);bottom:8px;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:rgba(0,0,0,.42);font-weight:600}
+
+/* ---------- library ---------- */
+.panel{display:flex;flex-direction:column;gap:14px;min-width:0}
+.eyebrow{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:#7d8388}
+h2{font-size:15px;font-weight:600;letter-spacing:-.01em;margin-top:2px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.tab{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 11px;border-radius:2px;
+  background:transparent;border:1px solid #4a4f53;color:#9aa0a4;cursor:pointer;transition:.15s}
+.tab:hover{border-color:#6f7579;color:var(--cream)}
+.tab[aria-pressed=true]{background:var(--champagne);border-color:var(--champagne);color:var(--ink);font-weight:500}
+.list{display:flex;flex-direction:column;border-top:1px solid #2a2c2e}
+.station{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;text-align:left;
+  padding:12px 4px;background:none;border:none;border-bottom:1px solid #232527;color:inherit;cursor:pointer;font-family:inherit;transition:.15s}
+.station:hover{background:rgba(211,184,132,.05)}
+.station[aria-current=true] .st-name{color:var(--amber)}
+.pip{width:6px;height:6px;border-radius:50%;background:#4a4f53;flex-shrink:0}
+.station[aria-current=true] .pip{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.st-name{font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-meta{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#8a9094;margin-top:3px}
+.st-cat{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#6f7579;flex-shrink:0}
+.note{font-size:11.5px;line-height:1.55;color:#9aa0a4}
+.hist{display:flex;flex-direction:column;gap:0;border-top:1px solid #2a2c2e;max-height:190px;overflow-y:auto}
+.hrow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:11px;padding:9px 4px;border-bottom:1px solid #232527;align-items:baseline}
+.htime{font-family:'DM Mono',monospace;font-size:9.5px;color:#6f7579;white-space:nowrap}
+.htitle{font-size:12px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hsub{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:#6f7579;margin-top:2px}
+.empty{font-size:11.5px;color:#6f7579;padding:14px 4px;font-style:italic}
+.station[data-disabled=true]{cursor:default;opacity:.5}
+.station[data-disabled=true]:hover{background:none}
+.hls-tag{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.08em;color:#6f7579;border:1px solid #3a3f42;border-radius:2px;padding:1px 4px;margin-left:6px}
+.addbox{border-top:1px solid #2a2c2e;padding-top:12px;margin-top:2px}
+.addbox summary{cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8a9094;list-style:none;user-select:none}
+.addbox summary::-webkit-details-marker{display:none}
+.addbox summary::before{content:"+ ";color:var(--champagne)}
+.addbox[open] summary::before{content:"− "}
+.addform{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.addform input,.addform select{
+  background:#101213;border:1px solid #3a3f42;color:var(--cream);font-family:'Archivo',sans-serif;font-size:12px;
+  padding:8px 10px;border-radius:3px;outline:none;
+}
+.addform input:focus,.addform select:focus{border-color:var(--champagne)}
+.addform button{
+  background:var(--champagne);color:var(--ink);border:none;font-family:'DM Mono',monospace;font-size:10px;
+  letter-spacing:.1em;text-transform:uppercase;padding:9px;border-radius:3px;cursor:pointer;font-weight:600;
+}
+.addform button:disabled{opacity:.5;cursor:wait}
+.addform .msg{font-size:11px;color:#9aa0a4;min-height:1.4em}
+.addform .msg.err{color:#c98a6b}
+.addform .msg.ok{color:#8fbf9c}
+@media(prefers-reduced-motion:reduce){.slat{transition:none}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- CABINET -->
+  <section class="cabinet" aria-label="Receiver">
+    <div class="face">
+      <div class="grille stopped" id="grille" aria-hidden="true"></div>
+      <div class="dial">
+        <div class="screen">
+          <div>
+            <img class="art hidden" id="art" alt="">
+            <div class="now-title" id="nowTitle">OFF</div>
+            <div class="now-sub" id="nowSub">—</div>
+          </div>
+        </div>
+      </div>
+      <span class="wordmark">Receiver</span>
+    </div>
+    <div class="rail">
+      <button class="knob" id="power" data-on="false" aria-label="Play or pause"></button>
+      <div class="vol">
+        <div class="vol-label">Volume</div>
+        <input type="range" id="vol" min="0" max="100" value="75" aria-label="Volume">
+      </div>
+      <span class="badge" id="statusBadge">Standby</span>
+    </div>
+  </section>
+
+  <!-- LIBRARY -->
+  <section class="panel">
+    <div>
+      <div class="eyebrow">Library</div>
+      <h2>Stations</h2>
+      <div class="tabs" id="tabs"></div>
+    </div>
+    <div class="list" id="list"></div>
+
+    <div style="margin-top:6px">
+      <div class="eyebrow">Heard today</div>
+      <div class="hist" id="hist"><div class="empty">Nothing logged yet.</div></div>
+    </div>
+
+    <p class="note" id="note"></p>
+
+    <details class="addbox">
+      <summary>Add a station</summary>
+      <div class="addform">
+        <input type="text" id="addName" placeholder="Station name">
+        <input type="text" id="addCat" placeholder="Category (e.g. Talk, Rock, Top 40)">
+        <input type="text" id="addCity" placeholder="City (optional)">
+        <input type="text" id="addUrl" placeholder="Station homepage or direct stream URL">
+        <button id="addBtn">Resolve &amp; add</button>
+        <div class="msg" id="addMsg"></div>
+      </div>
+    </details>
+  </section>
+</div>
+
+<audio id="audio"></audio>
+
+<script>
+const $ = s => document.querySelector(s);
+const audio = $("#audio"), grille = $("#grille");
+let stations = [], current = null, filter = "All";
+let ctx, analyser, data, raf;
+let hls = null;          // active Hls.js instance, when playing an HLS-only station
+let evtSource = null;    // active SSE connection for ICY metadata
+
+// build 26 grille slats
+const SLATS = 26;
+for (let i=0;i<SLATS;i++){ const d=document.createElement("div"); d.className="slat"; grille.appendChild(d); }
+const slats = [...document.querySelectorAll(".slat")];
+
+/* ---------------- library ---------------- */
+async function loadStations(){
+  try{
+    stations = await (await fetch("/api/stations")).json();
+  }catch(e){
+    $("#note").textContent = "Could not reach the local server on :7799. Is `node server.js` running?";
+    return;
+  }
+  renderTabs(); renderList();
+}
+
+function renderTabs(){
+  const cats = ["All", ...new Set(stations.map(s=>s.cat))];
+  $("#tabs").innerHTML = cats.map(c=>`<button class="tab" data-cat="${c}" aria-pressed="${c===filter}">${c}</button>`).join("");
+}
+$("#tabs").onclick = e => { const b=e.target.closest(".tab"); if(!b) return; filter=b.dataset.cat; renderTabs(); renderList(); };
+
+function statusLine(s){
+  if (!s.url) return "needs manual url";
+  if (s.kind === "hls") return (s.city||"") + " · HLS, no track data";
+  return [s.city, s.country].filter(Boolean).join(", ");
+}
+
+function renderList(){
+  const rows = stations.filter(s=>filter==="All"||s.cat===filter);
+  $("#list").innerHTML = rows.map(s=>{
+    const disabled = !s.url;
+    return `<button class="station" data-id="${s.id}" ${disabled?'data-disabled="true"':''} aria-current="${current?.id===s.id}">
+      <span class="pip"></span>
+      <span><span class="st-name">${s.name}${s.kind==="hls" ? '<span class="hls-tag">HLS</span>':''}</span>
+        <div class="st-meta">${statusLine(s)}</div></span>
+      <span class="st-cat">${s.cat}</span></button>`;
+  }).join("");
+}
+$("#list").onclick = e => {
+  const b = e.target.closest(".station"); if (!b) return;
+  const st = stations.find(s=>s.id===b.dataset.id);
+  if (!st.url){
+    setScreen("NO STREAM", "manual url needed");
+    $("#note").textContent = st.note || (st.name + " has no resolvable stream yet — capture the URL by hand and add it below.");
+    return;
+  }
+  tune(st);
+};
+
+/* ---------------- display ---------------- */
+function setScreen(title, sub, artUrl){
+  $("#nowTitle").textContent = title;
+  $("#nowSub").textContent = sub || "—";
+  const art = $("#art");
+  if (artUrl){ art.src = artUrl; art.classList.remove("hidden"); } else art.classList.add("hidden");
+}
+
+/* ---------------- tuning ---------------- */
+function teardown(){
+  if (evtSource){ evtSource.close(); evtSource = null; }
+  if (hls){ hls.destroy(); hls = null; }
+}
+
+function tune(st){
+  teardown();
+  current = st; renderList();
+  audio.volume = $("#vol").value/100;
+  setScreen(st.name.toUpperCase(), "connecting");
+  $("#statusBadge").textContent = "Tuning";
+  $("#note").textContent = st.note || "";
+
+  if (st.kind === "hls"){
+    playHls(st);
+  } else {
+    audio.crossOrigin = "anonymous";
+    audio.src = "/stream?id=" + encodeURIComponent(st.id);
+    audio.play().then(()=>{ startMeter(true); $("#power").dataset.on="true"; subscribeNow(st.id); })
+      .catch(()=> streamFailed(st));
+  }
+}
+
+function playHls(st){
+  audio.removeAttribute("crossorigin");
+  if (window.Hls && Hls.isSupported()){
+    hls = new Hls();
+    hls.loadSource(st.url);
+    hls.attachMedia(audio);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      audio.play().then(()=>{ startMeter(false); $("#power").dataset.on="true"; }).catch(()=>streamFailed(st));
+    });
+    hls.on(Hls.Events.ERROR, (evt, d) => { if (d.fatal) streamFailed(st); });
+  } else if (audio.canPlayType("application/vnd.apple.mpegurl")){
+    audio.src = st.url;
+    audio.play().then(()=>{ startMeter(false); $("#power").dataset.on="true"; }).catch(()=>streamFailed(st));
+  } else {
+    streamFailed(st);
+  }
+}
+
+function streamFailed(st){
+  setScreen("NO SIGNAL", "stream error");
+  $("#statusBadge").textContent = "Error";
+  $("#note").textContent = (st.note ? st.note + " " : "") + "The stream did not open just now.";
+}
+
+audio.addEventListener("playing", ()=>{
+  $("#statusBadge").textContent = "On air";
+  grille.classList.remove("stopped");
+  if (!current.kind || current.kind !== "hls") return; // ICY path sets its own title via SSE
+  setScreen(current.name.toUpperCase(), current.city || "");
+});
+audio.addEventListener("pause", ()=>{ $("#statusBadge").textContent="Standby"; grille.classList.add("stopped"); });
+audio.addEventListener("stalled", ()=>{ $("#statusBadge").textContent="Buffering"; });
+
+$("#power").onclick = () => {
+  if (!current) { const first = stations.find(s=>s.url); if (first) tune(first); return; }
+  if (audio.paused){ audio.play(); $("#power").dataset.on="true"; }
+  else { audio.pause(); $("#power").dataset.on="false"; }
+};
+$("#vol").oninput = e => audio.volume = e.target.value/100;
+
+/* ---------------- live ICY metadata ---------------- */
+function subscribeNow(id){
+  evtSource = new EventSource("/api/now?id=" + encodeURIComponent(id));
+  evtSource.onmessage = e => {
+    let m; try{ m = JSON.parse(e.data); } catch { return; }
+    if (current?.id !== id) return; // stale event from a station we've since left
+    if (m.title){
+      setScreen(m.title.toUpperCase(), m.artist || m.station || current.name, m.art || null);
+    } else if (m.station){
+      setScreen(current.name.toUpperCase(), [m.genre, m.bitrate && m.bitrate+"k"].filter(Boolean).join(" · "));
+    }
+  };
+}
+
+/* ---------------- history ---------------- */
+async function loadHistory(){
+  try{
+    const rows = await (await fetch("/api/history")).json();
+    renderHistory(rows);
+  }catch{}
+}
+function renderHistory(rows){
+  if (!rows.length){ $("#hist").innerHTML = '<div class="empty">Nothing logged yet.</div>'; return; }
+  $("#hist").innerHTML = rows.slice(0,25).map(h=>{
+    const t = new Date(h.at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+    const title = h.title || h.raw || "—";
+    const sub = [h.stationName, h.artist].filter(Boolean).join(" · ");
+    return `<div class="hrow"><span class="htime">${t}</span><span><div class="htitle">${title}</div><div class="hsub">${sub}</div></span></div>`;
+  }).join("");
+}
+setInterval(loadHistory, 20000); // ICY titles land async; poll rather than push for this panel
+
+/* ---------------- spectrum meter ----------------
+   Audio now arrives same-origin through our own proxy, so the analyser gets
+   real frequency data for ICY stations. HLS stations bypass the proxy and
+   usually lack CORS headers on their CDN, so those fall back to simulation. */
+function startMeter(sameOrigin){
+  let real = false;
+  if (sameOrigin){
+    try{
+      if (!ctx){ ctx = new (window.AudioContext||window.webkitAudioContext)();
+        const src = ctx.createMediaElementSource(audio);
+        analyser = ctx.createAnalyser(); analyser.fftSize = 64; analyser.smoothingTimeConstant = .78;
+        src.connect(analyser); analyser.connect(ctx.destination);
+        data = new Uint8Array(analyser.frequencyBinCount);
+      }
+      ctx.resume(); real = true;
+    }catch(e){}
+  }
+  cancelAnimationFrame(raf);
+  let phase = 0;
+  const loop = () => {
+    let live = false;
+    if (real && analyser){ analyser.getByteFrequencyData(data); live = data.some(v=>v>0); }
+    phase += .055;
+    slats.forEach((s,i)=>{
+      let v;
+      if (live){ v = data[Math.floor(i/SLATS*data.length)]/255; }
+      else { const c = 1 - Math.abs(i-SLATS/2)/(SLATS/1.5);
+             v = (Math.sin(phase*1.6+i*.45)*.5+.5)*.55*c + (Math.sin(phase*.7+i*.2)*.5+.5)*.3*c; }
+      s.style.transform = `skewX(-32deg) scaleY(${(0.42 + v*0.58).toFixed(3)})`;
+    });
+    raf = requestAnimationFrame(loop);
+  };
+  loop();
+}
+
+/* ---------------- add a station ---------------- */
+$("#addBtn").onclick = async () => {
+  const name = $("#addName").value.trim();
+  const cat = $("#addCat").value.trim() || "Other";
+  const city = $("#addCity").value.trim();
+  const url = $("#addUrl").value.trim();
+  const msg = $("#addMsg");
+  if (!name || !url){ msg.textContent = "Name and a URL are both needed."; msg.className = "msg err"; return; }
+
+  msg.textContent = "Resolving…"; msg.className = "msg";
+  $("#addBtn").disabled = true;
+  try{
+    const r = await (await fetch("/api/resolve?url=" + encodeURIComponent(url))).json();
+    if (r.error){ msg.textContent = r.error; msg.className = "msg err"; return; }
+    const payload = { name, cat, city, url: r.url, kind: r.kind === "hls" ? "hls" : undefined };
+    const saved = await (await fetch("/api/stations", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload) })).json();
+    msg.textContent = "Added " + saved.name + (r.kind === "hls" ? " (HLS — no track data)" : ".");
+    msg.className = "msg ok";
+    $("#addName").value = ""; $("#addCat").value = ""; $("#addCity").value = ""; $("#addUrl").value = "";
+    await loadStations();
+  }catch(e){
+    msg.textContent = "Something went wrong reaching the server.";
+    msg.className = "msg err";
+  }finally{
+    $("#addBtn").disabled = false;
+  }
+};
+
+/* ---------------- boot ---------------- */
+(async function init(){
+  setScreen("OFF","standby");
+  $("#note").textContent = "Loading library…";
+  await loadStations();
+  await loadHistory();
+  $("#note").textContent = stations.length ? "Pick a station to tune in." : "No stations yet — add one below.";
+})();
+</script>
+</body>
+</html>
