@@ -228,7 +228,6 @@ async function proxyStream(id, url, clientRes) {
   clientRes.writeHead(200, {
     "Content-Type": h["content-type"] || "audio/mpeg",
     "Cache-Control": "no-cache, no-store",
-    "Connection": "close",
   });
 
   if (!metaint) { upstream.pipe(clientRes); return; }
