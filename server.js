@@ -204,33 +204,88 @@ function logHistory(id, meta) {
   save("history.json", history);
 }
 
-async function proxyStream(id, url, clientRes) {
+async function proxyStream(id, url, clientRes, state) {
+  // `state` persists across silent upstream reconnects for the same client
+  // connection: whether headers are already sent, whether the client has
+  // disconnected (stop trying entirely), and a reference to whichever
+  // upstream connection is currently active (so a client disconnect can
+  // clean up the right one, however many silent reconnects have happened).
+  if (!state) {
+    state = { headersSent: false, clientGone: false, segments: 0, currentUpstream: null, rapidFails: 0, segmentStart: 0 };
+    clientRes.on("close", () => {
+      state.clientGone = true;
+      if (state.currentUpstream) state.currentUpstream.destroy();
+    });
+    // Registered once: resumes whichever upstream is currently active, no
+    // matter how many silent reconnects have happened since this client
+    // first connected. Registering this per-reconnect (as a first pass did)
+    // leaks a listener every time and trips Node's MaxListeners warning.
+    clientRes.on("drain", () => { if (state.currentUpstream) state.currentUpstream.resume(); });
+  }
+
   let upstream;
   try {
     upstream = await request(url, { headers: { "Icy-MetaData": "1" } });
   } catch (e) {
-    clientRes.writeHead(502, { "Content-Type": "text/plain" });
-    return clientRes.end("Upstream failed: " + e.message);
+    if (state.clientGone) return;
+    if (!state.headersSent) {
+      clientRes.writeHead(502, { "Content-Type": "text/plain" });
+      return clientRes.end("Upstream failed: " + e.message);
+    }
+    // Already streaming to the client — a reconnect attempt failed. Retry
+    // shortly rather than cutting the listener off after one bad attempt.
+    console.error(`[${id}] reconnect attempt failed: ${e.message} — retrying`);
+    return setTimeout(() => proxyStream(id, url, clientRes, state), 400);
   }
+  state.currentUpstream = upstream;
+
   if (upstream.statusCode >= 400) {
     upstream.resume();
-    const hint = upstream.statusCode === 500 || upstream.statusCode === 403
-      ? " — this usually means the station is geo-fenced to its home country."
-      : "";
-    clientRes.writeHead(502, { "Content-Type": "text/plain" });
-    return clientRes.end("Upstream returned " + upstream.statusCode + hint);
+    if (state.clientGone) return;
+    if (!state.headersSent) {
+      const hint = upstream.statusCode === 500 || upstream.statusCode === 403
+        ? " — this usually means the station is geo-fenced to its home country."
+        : "";
+      clientRes.writeHead(502, { "Content-Type": "text/plain" });
+      return clientRes.end("Upstream returned " + upstream.statusCode + hint);
+    }
+    console.error(`[${id}] reconnect got HTTP ${upstream.statusCode} — retrying`);
+    return setTimeout(() => proxyStream(id, url, clientRes, state), 400);
   }
 
   const h = upstream.headers;
   const metaint = parseInt(h["icy-metaint"], 10) || 0;
   pushMeta(id, { ...(nowPlaying.get(id) || {}), station: h["icy-name"] || null, bitrate: h["icy-br"] || null, genre: h["icy-genre"] || null, hasMeta: metaint > 0 });
 
-  clientRes.writeHead(200, {
-    "Content-Type": h["content-type"] || "audio/mpeg",
-    "Cache-Control": "no-cache, no-store",
-  });
+  if (!state.headersSent) {
+    clientRes.writeHead(200, {
+      "Content-Type": h["content-type"] || "audio/mpeg",
+      "Cache-Control": "no-cache, no-store",
+    });
+    state.headersSent = true;
+  }
+  state.segments++;
+  state.segmentStart = Date.now();
+  const segmentNum = state.segments;
 
-  if (!metaint) { upstream.pipe(clientRes); return; }
+  const reconnect = (reason) => {
+    if (state.clientGone) return;
+    const lastedMs = Date.now() - state.segmentStart;
+    state.rapidFails = lastedMs < 250 ? state.rapidFails + 1 : 0;
+    if (state.rapidFails > 15) {
+      console.error(`[${id}] giving up after ${state.rapidFails} near-instant reconnect failures in a row`);
+      return clientRes.end();
+    }
+    console.log(`[${id}] upstream ${reason} after ${lastedMs}ms (segment ${segmentNum}) — reconnecting silently`);
+    proxyStream(id, url, clientRes, state);
+  };
+
+  if (!metaint) {
+    upstream.pipe(clientRes, { end: false });
+    upstream.on("end", () => reconnect("ended"));
+    upstream.on("error", (err) => reconnect("errored: " + (err.code || err.message)));
+    return;
+  }
 
   let counter = 0, metaLeft = 0, metaBuf = [];
   upstream.on("data", chunk => {
@@ -268,10 +323,8 @@ async function proxyStream(id, url, clientRes) {
       off += take; counter += take;
     }
   });
-  clientRes.on("drain", () => upstream.resume());
-  upstream.on("end", () => clientRes.end());
-  upstream.on("error", () => clientRes.end());
-  clientRes.on("close", () => upstream.destroy());
+  upstream.on("end", () => reconnect("ended"));
+  upstream.on("error", (err) => reconnect("errored: " + (err.code || err.message)));
 }
 
 /* ---------------- routes ---------------- */
