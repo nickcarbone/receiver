@@ -6,177 +6,104 @@
 <meta name="apple-mobile-web-app-capable" content="no">
 <meta name="theme-color" content="#1b1e21">
 <title>Receiver</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23252a2e'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%238d959c' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23d9a441'/%3E%3C/svg%3E">
 <style>
   :root{
-    --shell:#1b1e21;
-    --panel:#252a2e;
-    --panel-hi:#2f353a;
-    --slat:#3a4046;
-    --etch:#8d959c;
-    --readout:#e8e4dc;
-    --lamp:#d9a441;
-    --hair:rgba(255,255,255,.07);
-    --dead:#5a6167;
+    --shell:#1b1e21; --panel:#252a2e; --panel-hi:#2f353a; --slat:#3a4046;
+    --etch:#8d959c; --readout:#e8e4dc; --lamp:#d9a441; --hair:rgba(255,255,255,.07);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
-  body{
-    background:var(--shell);
-    color:var(--readout);
+  body{background:var(--shell);color:var(--readout);
     font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    -webkit-font-smoothing:antialiased;
-    padding-bottom:env(safe-area-inset-bottom);
-  }
+    -webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
   button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
-  input,select{font:inherit}
+  input,select,textarea{font:inherit}
 
-  /* ---------- cabinet ---------- */
-  .cabinet{
-    position:sticky;top:0;z-index:20;
+  .cabinet{position:sticky;top:0;z-index:20;
     background:linear-gradient(#2f353a,#22272b 62%,#1d2124);
     border-bottom:1px solid #14171a;
     box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 8px 22px rgba(0,0,0,.45);
-    padding:calc(10px + env(safe-area-inset-top)) 14px 12px;
-  }
+    padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
   .cab-row{display:flex;align-items:center;gap:13px}
-
-  /* porthole */
-  .porthole{
-    flex:0 0 92px;height:92px;border-radius:50%;
+  .porthole{flex:0 0 92px;height:92px;border-radius:50%;
     background:radial-gradient(circle at 34% 28%,#33393e,#1a1d20 72%);
-    box-shadow:
-      0 0 0 2px #4a5157,
-      0 0 0 3px #16191b,
-      inset 0 3px 9px rgba(0,0,0,.75),
-      inset 0 -2px 5px rgba(255,255,255,.05);
+    box-shadow:0 0 0 2px #4a5157,0 0 0 3px #16191b,
+      inset 0 3px 9px rgba(0,0,0,.75),inset 0 -2px 5px rgba(255,255,255,.05);
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    text-align:center;padding:8px;overflow:hidden;position:relative;
-  }
-  .p-freq{
-    font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
-    letter-spacing:.08em;color:var(--etch);
-  }
-  .p-name{
-    font:600 13px/1.15 -apple-system,sans-serif;
-    color:var(--readout);margin-top:5px;max-width:76px;
-    overflow:hidden;text-overflow:ellipsis;display:-webkit-box;
-    -webkit-line-clamp:2;-webkit-box-orient:vertical;
-  }
-  .lamp{
-    width:6px;height:6px;border-radius:50%;background:#3d4348;margin-top:6px;
-    transition:background .25s, box-shadow .25s;
-  }
+    text-align:center;padding:8px;overflow:hidden}
+  .p-freq{font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;color:var(--etch)}
+  .p-name{font:600 13px/1.15 -apple-system,sans-serif;color:var(--readout);margin-top:5px;max-width:76px;
+    overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .lamp{width:6px;height:6px;border-radius:50%;background:#3d4348;margin-top:6px;transition:background .25s,box-shadow .25s}
   .lamp.on{background:var(--lamp);box-shadow:0 0 7px 1px rgba(217,164,65,.75)}
   .lamp.warm{background:#7a6234}
-
-  /* grille */
-  .grille{
-    flex:1;height:92px;border-radius:5px;overflow:hidden;
+  .grille{flex:1;height:92px;border-radius:5px;overflow:hidden;
     display:flex;gap:3px;align-items:flex-end;padding:7px 8px;
     background:linear-gradient(#1c2023,#15181a);
-    box-shadow:inset 0 2px 6px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.05);
-  }
-  .slat{
-    flex:1;height:26%;background:var(--slat);border-radius:1px;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.05)}
+  .slat{flex:1;height:26%;background:var(--slat);border-radius:1px;
     transform:skewX(-13deg);transform-origin:bottom;
-    transition:height .34s cubic-bezier(.3,.7,.3,1), background .34s;
-  }
+    transition:height .34s cubic-bezier(.3,.7,.3,1),background .34s}
   .playing .slat{background:#4b535a}
-
-  .cab-meta{
-    display:flex;justify-content:space-between;align-items:baseline;
-    margin-top:9px;font-size:12px;color:var(--etch);gap:10px;
-  }
-  .cab-meta b{font-weight:500;color:#aab2b8}
-  .stopbtn{
-    color:var(--etch);border:1px solid var(--hair);border-radius:20px;
-    padding:3px 12px;font-size:12px;
-  }
+  .cab-meta{display:flex;justify-content:space-between;align-items:baseline;
+    margin-top:9px;font-size:12px;color:var(--etch);gap:10px}
+  .stopbtn{color:var(--etch);border:1px solid var(--hair);border-radius:20px;padding:3px 12px;font-size:12px}
   .stopbtn:active{background:rgba(255,255,255,.06)}
 
-  /* ---------- controls ---------- */
-  .chips{
-    display:flex;gap:7px;overflow-x:auto;padding:11px 14px 4px;
-    scrollbar-width:none;-webkit-overflow-scrolling:touch;
-  }
+  .chips{display:flex;gap:7px;overflow-x:auto;padding:9px 14px 0;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .chips::-webkit-scrollbar{display:none}
-  .chip{
-    flex:0 0 auto;padding:6px 13px;border-radius:16px;font-size:13px;
-    color:var(--etch);border:1px solid var(--hair);background:rgba(255,255,255,.02);
-  }
+  .chips.sub{padding-top:7px}
+  .chip{flex:0 0 auto;padding:6px 13px;border-radius:16px;font-size:13px;
+    color:var(--etch);border:1px solid var(--hair);background:rgba(255,255,255,.02);white-space:nowrap}
   .chip[aria-pressed="true"]{color:#141719;background:var(--readout);border-color:var(--readout);font-weight:600}
+  .chips.sub .chip[aria-pressed="true"]{background:#4b535a;color:var(--readout);border-color:#5a6167}
 
-  .searchwrap{padding:8px 14px 2px}
-  .search{
-    width:100%;padding:9px 12px;border-radius:8px;
-    background:#171a1d;border:1px solid var(--hair);color:var(--readout);
-  }
+  .searchwrap{padding:9px 14px 2px}
+  .search{width:100%;padding:9px 12px;border-radius:8px;background:#171a1d;border:1px solid var(--hair);color:var(--readout)}
   .search::placeholder{color:#5f676d}
+  .count{padding:6px 16px 0;font-size:11.5px;color:#666e74}
 
-  /* ---------- list ---------- */
-  .list{padding:8px 10px 32px;display:flex;flex-direction:column;gap:6px}
-  .st{
-    display:flex;align-items:center;gap:11px;
-    padding:11px 12px;border-radius:9px;
-    background:var(--panel);border:1px solid var(--hair);
-    text-align:left;width:100%;
-  }
+  .list{padding:6px 10px 30px;display:flex;flex-direction:column;gap:6px}
+  .st{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:9px;
+    background:var(--panel);border:1px solid var(--hair);text-align:left;width:100%}
   .st:active{background:var(--panel-hi)}
   .st.live{border-color:rgba(217,164,65,.5);background:#2c3136}
   .st-body{flex:1;min-width:0}
-  .st-name{font-weight:600;font-size:15px;display:flex;align-items:center;gap:7px}
+  .st-name{font-weight:600;font-size:15px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
   .st-sub{font-size:12.5px;color:var(--etch);margin-top:2px}
-  .st-note{font-size:12px;color:#8a7c56;margin-top:4px;line-height:1.35}
   .st-act{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
   .fav{font-size:16px;line-height:1;color:#464d53;padding:2px 4px}
   .fav.on{color:var(--lamp)}
-  .out{
-    font-size:11.5px;color:var(--etch);border:1px solid var(--hair);
-    border-radius:14px;padding:4px 9px;text-decoration:none;white-space:nowrap;
-  }
-  .tag{
-    font:600 9.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;
-    padding:3px 5px;border-radius:3px;background:#3a4046;color:#c3cad0;
-  }
-  .tag.warn{background:#4a3f22;color:#d9bd7c}
-  .st.blocked .st-name{color:var(--dead)}
-
+  .out{font-size:11.5px;color:var(--etch);border:1px solid var(--hair);border-radius:14px;
+    padding:4px 9px;text-decoration:none;white-space:nowrap}
+  .tag{font:600 9.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;
+    padding:3px 5px;border-radius:3px;background:#3a4046;color:#c3cad0}
   .empty{padding:34px 20px;text-align:center;color:var(--etch);font-size:14px}
 
-  /* ---------- drawer ---------- */
-  .bar{
-    display:flex;gap:8px;padding:4px 14px 26px;justify-content:center;flex-wrap:wrap;
-  }
-  .bar button{
-    font-size:12.5px;color:var(--etch);border:1px solid var(--hair);
-    border-radius:16px;padding:6px 13px;
-  }
-  dialog{
-    border:0;border-radius:14px 14px 0 0;padding:0;width:100%;max-width:520px;
-    background:var(--panel);color:var(--readout);margin:auto auto 0;
-  }
+  .bar{display:flex;gap:8px;padding:2px 14px 26px;justify-content:center;flex-wrap:wrap}
+  .bar button{font-size:12.5px;color:var(--etch);border:1px solid var(--hair);border-radius:16px;padding:6px 13px}
+  dialog{border:0;border-radius:14px 14px 0 0;padding:0;width:100%;max-width:520px;
+    background:var(--panel);color:var(--readout);margin:auto auto 0}
   dialog::backdrop{background:rgba(0,0,0,.6)}
   .sheet{padding:18px 18px calc(20px + env(safe-area-inset-bottom))}
   .sheet h2{font-size:16px;margin:0 0 3px}
   .sheet p{font-size:12.5px;color:var(--etch);margin:0 0 14px}
   .f{display:block;margin-bottom:10px}
   .f span{display:block;font-size:12px;color:var(--etch);margin-bottom:4px}
-  .f input,.f select{
-    width:100%;padding:9px 11px;border-radius:8px;
-    background:#171a1d;border:1px solid var(--hair);color:var(--readout);
-  }
+  .f input,.f select,.f textarea{width:100%;padding:9px 11px;border-radius:8px;
+    background:#171a1d;border:1px solid var(--hair);color:var(--readout)}
   .sheet-act{display:flex;gap:9px;margin-top:14px}
   .sheet-act button{flex:1;padding:11px;border-radius:9px;font-weight:600;font-size:14px}
   .save{background:var(--readout);color:#171a1d}
   .cancel{border:1px solid var(--hair);color:var(--etch)}
   .msg{font-size:12.5px;color:var(--lamp);min-height:17px;margin-top:8px}
-
   @media (prefers-reduced-motion:reduce){.slat{transition:none}}
 </style>
 </head>
 <body>
 
-<div class="cabinet" id="cab">
+<div class="cabinet">
   <div class="cab-row">
     <div class="porthole">
       <div class="p-freq" id="pFreq">OFF</div>
@@ -191,24 +118,28 @@
   </div>
 </div>
 
-<div class="chips" id="chips"></div>
-<div class="searchwrap"><input class="search" id="search" placeholder="Search stations" autocomplete="off" autocapitalize="off"></div>
+<div class="chips" id="chipsFormat"></div>
+<div class="chips sub" id="chipsRegion"></div>
+<div class="searchwrap"><input class="search" id="search" placeholder="Search name, city, or language" autocomplete="off" autocapitalize="off"></div>
+<div class="count" id="count"></div>
 <div class="list" id="list"></div>
 
 <div class="bar">
   <button id="addBtn">Add a station</button>
-  <button id="expBtn">Export library</button>
-  <button id="impBtn">Import library</button>
+  <button id="expBtn">Export</button>
+  <button id="impBtn">Import</button>
 </div>
 
 <dialog id="sheet"><div class="sheet">
   <h2 id="shTitle">Add a station</h2>
-  <p>Paste a direct stream URL — an Icecast/Shoutcast mount or an .m3u8. A homepage link won't play.</p>
+  <p>Paste a direct stream URL — an Icecast or Shoutcast mount, or an .m3u8. A homepage link won't play.</p>
   <label class="f"><span>Name</span><input id="fName" placeholder="Radio Nova"></label>
   <label class="f"><span>Stream URL</span><input id="fUrl" placeholder="https://…" inputmode="url" autocapitalize="off"></label>
   <label class="f"><span>Where to listen on the web (optional)</span><input id="fSite" placeholder="https://…" inputmode="url" autocapitalize="off"></label>
   <label class="f"><span>City and country</span><input id="fPlace" placeholder="Paris, France"></label>
-  <label class="f"><span>Bucket</span><select id="fCat"></select></label>
+  <label class="f"><span>Language</span><input id="fLang" placeholder="French"></label>
+  <label class="f"><span>Format</span><select id="fCat"></select></label>
+  <label class="f"><span>Region</span><select id="fReg"></select></label>
   <div class="msg" id="fMsg"></div>
   <div class="sheet-act">
     <button class="cancel" id="fCancel">Cancel</button>
@@ -222,7 +153,7 @@
 <dialog id="ioSheet"><div class="sheet">
   <h2 id="ioTitle">Library</h2>
   <p id="ioHelp"></p>
-  <label class="f"><textarea id="ioText" rows="9" style="width:100%;padding:9px;border-radius:8px;background:#171a1d;border:1px solid var(--hair);color:var(--readout);font:12px/1.4 ui-monospace,Menlo,monospace"></textarea></label>
+  <label class="f"><textarea id="ioText" rows="9" style="font:12px/1.4 ui-monospace,Menlo,monospace"></textarea></label>
   <div class="msg" id="ioMsg"></div>
   <div class="sheet-act">
     <button class="cancel" id="ioClose">Close</button>
@@ -231,159 +162,140 @@
 </div></dialog>
 
 <script>
-/* ============================================================
-   Receiver — mobile
-   Static page. No server, so no ICY metadata: the readout shows
-   station identity, not the current track. Every stream URL below
-   was probed live (status, content-type, icy-name) rather than
-   assumed. Notes record what failed and why.
-   ============================================================ */
+/* Receiver — mobile.
+   Static page, so no ICY metadata: the readout shows station identity,
+   not the current track. Every stream below was probed for HTTPS, status,
+   icy-name and actual audio bytes before being added. */
 
 const BUILT = [
-  // ---- Talk ----
-  {id:"monocle", n:"Monocle 24", cat:"Talk", place:"London, UK",
-   url:"https://playerservices.streamtheworld.com/api/livestream-redirect/MONOCLE_24AAC.aac",
-   site:"https://monocle.com/radio/"},
-  {id:"bbcws", n:"BBC World Service", cat:"Talk", place:"London, UK",
-   url:"https://stream.live.vc.bbcmedia.co.uk/bbc_world_service",
-   site:"https://www.bbc.co.uk/sounds/play/live:bbc_world_service"},
-  {id:"radio1si", n:"Radio 1", cat:"Talk", place:"Ljubljana, Slovenia",
-   url:"https://live.radio1.si/Radio1", site:"https://radio1.si/"},
+{id:"monocle", n:"Monocle 24", cat:"Talk", reg:"Britain", place:"London, UK", lang:"English", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/MONOCLE_24AAC.aac", site:"https://monocle.com/radio/"},
+{id:"bbcws", n:"BBC World Service", cat:"Talk", reg:"Britain", place:"London, UK", lang:"English", url:"https://stream.live.vc.bbcmedia.co.uk/bbc_world_service", site:"https://www.bbc.co.uk/sounds/play/live:bbc_world_service"},
+{id:"radio1si", n:"Radio 1", cat:"Talk", reg:"Balkans", place:"Ljubljana, Slovenia", lang:"Slovene", url:"https://live.radio1.si/Radio1", site:"https://radio1.si/"},
+{id:"bfbs1", n:"BFBS UK", cat:"Forces", reg:"Britain", place:"Forces network, UK", lang:"English", url:"https://listen-ssvcbfbs.sharp-stream.com/ssvcbfbs1.aac", site:"https://www.bfbs.com/radio"},
+{id:"bfbs2", n:"BFBS Radio 2", cat:"Forces", reg:"Britain", place:"Forces network, UK", lang:"English", url:"https://listen-ssvcbfbs.sharp-stream.com/ssvcbfbs2.aac", site:"https://www.bfbs.com/radio"},
+{id:"bfbsgurkha", n:"BFBS Gurkha Radio", cat:"Forces", reg:"Britain", place:"Nepali service", lang:"Nepali", url:"https://listen-ssvcbfbs.sharp-stream.com/ssvcbfbs3.aac", site:"https://www.bfbs.com/radio"},
+{id:"bfbsger", n:"BFBS Germany", cat:"Forces", reg:"Britain", place:"Germany", lang:"English", url:"https://edge-audio-01-cr.sharp-stream.com/ssvcbfbs5.mp3", site:"https://www.bfbs.com/radio"},
+{id:"bfbscyp", n:"BFBS Cyprus", cat:"Forces", reg:"Britain", place:"Cyprus", lang:"English", url:"https://listen-ssvcbfbs.sharp-stream.com/ssvcbfbs8.aac", site:"https://www.bfbs.com/radio"},
+{id:"bfbsbeats", n:"BFBS Beats", cat:"Forces", reg:"Britain", place:"Dance stream", lang:"English", url:"https://edge-audio-01-cr.sharp-stream.com/ssvcbfbs20.aac?device=bfbs_beats", site:"https://www.bfbs.com/radio"},
+{id:"stubru", n:"VRT Studio Brussel", cat:"Rock", reg:"France & Low Countries", place:"Brussels, Belgium", lang:"Dutch", url:"https://icecast.vrtcdn.be/stubru-high.mp3", site:"https://www.vrt.be/vrtmax/kanalen/stubru/"},
+{id:"srf3", n:"SRF 3", cat:"Rock", reg:"Central Europe", place:"Zurich, Switzerland", lang:"Swiss German", url:"https://stream.srg-ssr.ch/srgssr/srf3/aac/192", site:"https://www.srf.ch/radio-srf-3"},
+{id:"1live", n:"1LIVE", cat:"Rock", reg:"Central Europe", place:"Cologne, Germany", lang:"German", url:"https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3", site:"https://www1.wdr.de/radio/1live/"},
+{id:"antyradio", n:"Antyradio", cat:"Rock", reg:"Central Europe", place:"Warsaw, Poland", lang:"Polish", url:"https://n-4-2.dcs.redcdn.pl/sc/o2/Eurozet/live/antyradio.livx?audio=5", site:"https://www.antyradio.pl/"},
+{id:"radiorockno", n:"Radio Rock", cat:"Rock", reg:"Nordics", place:"Oslo, Norway", lang:"Norwegian", url:"https://live-bauerno.sharp-stream.com/radiorock_no_mp3", site:"https://radiorock.no/"},
+{id:"radio21", n:"Radio 21", cat:"Rock", reg:"Central Europe", place:"Nordrhein-Westfalen, Germany", lang:"German", url:"https://streams.radio21.de/nrw/mp3-192/web", site:"https://www.radio21.de/"},
+{id:"virginit", n:"Virgin Radio Italy", cat:"Rock", reg:"Iberia & Med", place:"Milan, Italy", lang:"Italian", url:"https://icy.unitedradio.it/Virgin.mp3", site:"https://www.virginradio.it/"},
+{id:"rcrock", n:"Rádio Comercial Rock", cat:"Rock", reg:"Iberia & Med", place:"Lisbon, Portugal", lang:"Portuguese", url:"https://stream-icy.bauermedia.pt/rcrock.aac", site:"https://radiocomercial.pt/"},
+{id:"rockandpop", n:"Rock & Pop 95.9", cat:"Rock", reg:"Beyond Europe", place:"Buenos Aires, Argentina", lang:"Spanish", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/ROCKANDPOPAAC.aac", site:"https://www.rockandpop.com.ar/"},
+{id:"89fmbr", n:"89 A Rádio Rock", cat:"Rock", reg:"Beyond Europe", place:"São Paulo, Brazil", lang:"Portuguese", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO_89FM_ADP.aac", site:"https://www.radiorock.com.br/"},
+{id:"zeppelin", n:"Zeppelin 106.7", cat:"Rock", reg:"Balkans", place:"Athens, Greece", lang:"Greek", url:"https://radiostreaming.ert.gr/ert-zeppelin", site:"https://webradio.ert.gr/zeppelin/"},
+{id:"novafr", n:"Radio Nova", cat:"Rock", reg:"France & Low Countries", place:"Paris, France", lang:"French", url:"https://novazz.ice.infomaniak.ch/novazz-128.mp3", site:"https://www.nova.fr/"},
+{id:"qmusic00s", n:"Qmusic 90's & 00's", cat:"00s & Retro", reg:"France & Low Countries", place:"Hilversum, Netherlands", lang:"Dutch", url:"https://stream.qmusic.nl/90s-00s/aaclow", site:"https://qmusic.nl/"},
+{id:"p9retro", n:"P9 Retro", cat:"00s & Retro", reg:"Nordics", place:"Oslo, Norway", lang:"Norwegian", url:"https://p9.p4groupaudio.com/P09_MH", site:"https://radio.no/"},
+{id:"nostalgievl", n:"Nostalgie Vlaanderen", cat:"00s & Retro", reg:"France & Low Countries", place:"Brussels, Belgium", lang:"Dutch", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/NOSTALGIEWHATAFEELING.mp3", site:"https://www.nostalgie.be/"},
+{id:"nostalgie80", n:"Nostalgie 80's", cat:"00s & Retro", reg:"France & Low Countries", place:"Brussels, Belgium", lang:"French", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/NOSTALGIEWAF80.mp3", site:"https://www.nostalgie.be/"},
+{id:"retrofmlv", n:"Retro FM Rīga", cat:"00s & Retro", reg:"Baltics", place:"Riga, Latvia", lang:"Russian", url:"https://live.retrofm.lv/retrofmlatvia", site:"https://retrofm.lv/"},
+{id:"rockfmballads", n:"Rock FM Ballads", cat:"00s & Retro", reg:"Balkans", place:"Bucharest, Romania", lang:"Romanian", url:"https://live.rockfm.ro/ballads.rock", site:"https://www.rockfm.ro/"},
+{id:"skyrockklas", n:"Skyrock Casablanca", cat:"00s & Retro", reg:"Beyond Europe", place:"Casablanca, Morocco", lang:"Arabic, French", url:"https://icecast.skyrock.net/s/casa_aac_64k", site:"https://www.skyrock.fm/"},
+{id:"anr", n:"ANR", cat:"Top 40", reg:"Nordics", place:"Aabenraa, Denmark", lang:"Danish", url:"https://stream.anr.dk/anr", site:"https://www.anr.dk/"},
+{id:"bay897", n:"89.7 Bay", cat:"Top 40", reg:"Iberia & Med", place:"Malta", lang:"Maltese, English", url:"https://stream.v3.network/proxy/897bay/stream.mp3", site:"https://bay.com.mt/"},
+{id:"bayeasy", n:"Bay Easy 100.2", cat:"Top 40", reg:"Iberia & Med", place:"Malta", lang:"Maltese, English", url:"https://stream.v3.network/proxy/easy/stream.mp3", site:"https://bay.com.mt/"},
+{id:"calypso", n:"Calypso Radio 101.8", cat:"Top 40", reg:"Iberia & Med", place:"Malta", lang:"Maltese", url:"https://s4.radio.co/sf3aa4c25a/listen", site:"https://calypsoradio.com.mt/"},
+{id:"riviera", n:"Riviera Radio", cat:"Top 40", reg:"Iberia & Med", place:"Monaco", lang:"English", url:"https://media-ssl.musicradio.com/RivieraRadio", site:"https://rivieraradio.mc/"},
+{id:"nrj", n:"NRJ", cat:"Top 40", reg:"France & Low Countries", place:"Paris, France", lang:"French", url:"https://streaming.nrjaudio.fm/ou5k6tirv93h", site:"https://www.nrj.fr/player"},
+{id:"skyrockhits", n:"Skyrock Hits", cat:"Top 40", reg:"France & Low Countries", place:"Paris, France", lang:"French", url:"https://icecast.skyrock.net/s/hit_skyrock_aac_64k", site:"https://www.skyrock.fm/"},
+{id:"funradiobe", n:"Fun Radio", cat:"Top 40", reg:"France & Low Countries", place:"Brussels, Belgium", lang:"French", url:"https://funradiobe.ice.infomaniak.ch/funradiobe-high.mp3", site:"https://www.funradio.be/"},
+{id:"qmusicbe", n:"Qmusic Belgium", cat:"Top 40", reg:"France & Low Countries", place:"Antwerp, Belgium", lang:"Dutch", url:"https://icecast-qmusicbe-cdp.triple-it.nl/qmusic.aac", site:"https://qmusic.be/"},
+{id:"radio538", n:"Radio 538", cat:"Top 40", reg:"France & Low Countries", place:"Amsterdam, Netherlands", lang:"Dutch", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3", site:"https://www.538.nl/luister-live"},
+{id:"qmusicnl", n:"Qmusic", cat:"Top 40", reg:"France & Low Countries", place:"Hilversum, Netherlands", lang:"Dutch", url:"https://icecast-qmusicnl-cdp.triple-it.nl/Qmusic_nl_live_96.mp3", site:"https://qmusic.nl/"},
+{id:"veronica", n:"Radio Veronica", cat:"Top 40", reg:"France & Low Countries", place:"Hilversum, Netherlands", lang:"Dutch", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/VERONICA.mp3", site:"https://www.radioveronica.nl/"},
+{id:"npo3fm", n:"NPO 3FM", cat:"Top 40", reg:"France & Low Countries", place:"Hilversum, Netherlands", lang:"Dutch", url:"https://icecast.omroep.nl/3fm-bb-mp3", site:"https://www.npo3fm.nl/"},
+{id:"zoo", n:"Zoo Radio 90.8", cat:"Top 40", reg:"Balkans", place:"Thessaloniki, Greece", lang:"Greek", url:"https://metromedia.live24.gr/zoo908thess", site:"https://www.zooradio.gr/"},
+{id:"sfera", n:"Sfera 102.2", cat:"Top 40", reg:"Balkans", place:"Athens, Greece", lang:"Greek", url:"https://sfera.live24.gr/sfera4132", site:"https://www.sfera.gr/"},
+{id:"otvoreni", n:"Otvoreni", cat:"Top 40", reg:"Balkans", place:"Zagreb, Croatia", lang:"Croatian", url:"https://stream.otvoreni.hr/otvoreni", site:"https://www.otvoreni.hr/"},
+{id:"antena", n:"Antena Sarajevo", cat:"Top 40", reg:"Balkans", place:"Sarajevo, Bosnia", lang:"Bosnian", url:"https://stream.rsgmedia.ba/listen/antena_sarajevo/radio.mp3", site:"https://radio.antena.ba/"},
+{id:"kanal77", n:"Kanal 77", cat:"Top 40", reg:"Balkans", place:"Skopje, North Macedonia", lang:"Macedonian", url:"https://radiocnd.mms.mk/proxy/offnet/stream", site:"https://www.kanal77.com.mk/"},
+{id:"topalb", n:"Top Albania Radio", cat:"Top 40", reg:"Balkans", place:"Tirana, Albania", lang:"Albanian", url:"https://live.top-media.al/tar", site:"https://www.top-channel.tv/"},
+{id:"radioshqip", n:"Radio Shqip 92.0", cat:"Top 40", reg:"Balkans", place:"Tirana, Albania", lang:"Albanian", url:"https://cp1.sednastream.com/proxy/radioshqip?mp=/stream", site:"https://radioshqip.al/"},
+{id:"radioone_al", n:"Radio One 95.2", cat:"Top 40", reg:"Balkans", place:"Tirana, Albania", lang:"Albanian", url:"https://cp1.sednastream.com/proxy/radioone94?mp=/stream", site:"https://radioone.al/"},
+{id:"eldo", n:"Eldoradio", cat:"Top 40", reg:"France & Low Countries", place:"Luxembourg City", lang:"Luxembourgish", url:"https://sc.bce.lu/eldo", site:"https://www.eldo.lu/"},
+{id:"bigfm", n:"bigFM", cat:"Top 40", reg:"Central Europe", place:"Stuttgart, Germany", lang:"German", url:"https://stream.bigfm.de/deutschland/mp3-128/radio-browser", site:"https://www.bigfm.de/webradio"},
+{id:"njoy", n:"N-JOY", cat:"Top 40", reg:"Central Europe", place:"Hamburg, Germany", lang:"German", url:"https://icecast.ndr.de/ndr/njoy/live/mp3/128/stream.mp3", site:"https://www.n-joy.de/"},
+{id:"dasding", n:"DASDING", cat:"Top 40", reg:"Central Europe", place:"Baden-Baden, Germany", lang:"German", url:"https://liveradio.swr.de/d245tgd/dasding/", site:"https://www.dasding.de/livestream"},
+{id:"ffh", n:"Hit Radio FFH", cat:"Top 40", reg:"Central Europe", place:"Bad Vilbel, Germany", lang:"German", url:"https://mp3.ffh.de/radioffh/hqlivestream.aac", site:"https://www.ffh.de/webradio"},
+{id:"evropa2", n:"Evropa 2", cat:"Top 40", reg:"Central Europe", place:"Prague, Czechia", lang:"Czech", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/EVROPA2AAC.aac", site:"https://www.evropa2.cz/"},
+{id:"rmffm", n:"RMF FM", cat:"Top 40", reg:"Central Europe", place:"Krakow, Poland", lang:"Polish", url:"https://rs202-krk-cyfronet.rmfstream.pl/rmf_fm", site:"https://www.rmf.fm/"},
+{id:"rmfmaxxx", n:"RMF MAXXX", cat:"Top 40", reg:"Central Europe", place:"Krakow, Poland", lang:"Polish", url:"https://rs9-krk2-cyfronet.rmfstream.pl/RMFMAXXX48", site:"https://www.rmfmaxxx.pl/"},
+{id:"radiozet", n:"Radio ZET", cat:"Top 40", reg:"Central Europe", place:"Warsaw, Poland", lang:"Polish", url:"https://r.dcs.redcdn.pl/sc/o2/Eurozet/live/audio.livx?audio=5", site:"https://www.radiozet.pl/"},
+{id:"radio1hu", n:"Rádió 1", cat:"Top 40", reg:"Central Europe", place:"Budapest, Hungary", lang:"Hungarian", url:"https://icast.connectmedia.hu/5201/live.mp3", site:"https://www.radio1.hu/"},
+{id:"kissfmro", n:"Kiss FM", cat:"Top 40", reg:"Balkans", place:"Bucharest, Romania", lang:"Romanian", url:"https://live.kissfm.ro/kissfm.aacp", site:"https://www.kissfm.ro/"},
+{id:"thevoicebg", n:"The Voice", cat:"Top 40", reg:"Balkans", place:"Sofia, Bulgaria", lang:"Bulgarian", url:"https://bss1.neterra.tv/thevoicefm/thevoicefm.m3u8", site:"https://thevoice.bg/", hls:true},
+{id:"starfmee", n:"Star FM", cat:"Top 40", reg:"Baltics", place:"Tallinn, Estonia", lang:"Estonian", url:"https://ice.leviracloud.eu/star96-aac", site:"https://www.starfm.ee/"},
+{id:"zipfm", n:"ZIP FM", cat:"Top 40", reg:"Baltics", place:"Vilnius, Lithuania", lang:"Lithuanian", url:"https://stream2.zipfm.lt/zipfm128.mp3", site:"https://www.zipfm.lt/"},
+{id:"radiocentras", n:"Radiocentras", cat:"Top 40", reg:"Baltics", place:"Vilnius, Lithuania", lang:"Lithuanian", url:"https://stream2.rc.lt/rc128.mp3", site:"https://www.radiocentras.lt/"},
+{id:"m1dance", n:"M-1 Dance", cat:"Top 40", reg:"Baltics", place:"Vilnius, Lithuania", lang:"Lithuanian", url:"https://radio.m-1.fm/m-1dance/aac", site:"https://www.m-1.fm/"},
+{id:"ylex", n:"YleX", cat:"Top 40", reg:"Nordics", place:"Helsinki, Finland", lang:"Finnish", url:"https://icecast.live.yle.fi/radio/YleX/icecast.audio", site:"https://yle.fi/ylex"},
+{id:"p5no", n:"P5 Nonstop Hits", cat:"Top 40", reg:"Nordics", place:"Oslo, Norway", lang:"Norwegian", url:"https://p5n.p4groupaudio.com/P05AAH", site:"https://radio.no/"},
+{id:"p12no", n:"P12 Hitmix", cat:"Top 40", reg:"Nordics", place:"Oslo, Norway", lang:"Norwegian", url:"https://nrj.p4groupaudio.com/NRJ_MM", site:"https://radio.no/"},
+{id:"p3se", n:"P3", cat:"Top 40", reg:"Nordics", place:"Stockholm, Sweden", lang:"Swedish", url:"https://live1.sr.se/p3-mp3-96", site:"https://sverigesradio.se/p3"},
+{id:"megapol", n:"Mix Megapol", cat:"Top 40", reg:"Nordics", place:"Stockholm, Sweden", lang:"Swedish", url:"https://live-bauerse-fm.sharp-stream.com/mixmegapol_instream_se_mp3", site:"https://www.mixmegapol.se/"},
+{id:"thevoicedk", n:"The Voice", cat:"Top 40", reg:"Nordics", place:"Copenhagen, Denmark", lang:"Danish", url:"https://live-bauerdk.sharp-stream.com/thevoice_dk_mp3", site:"https://thevoice.dk/"},
+{id:"novadk", n:"Nova FM", cat:"Top 40", reg:"Nordics", place:"Copenhagen, Denmark", lang:"Danish", url:"https://live-bauerdk.sharp-stream.com/nova_dk_mp3", site:"https://novafm.dk/"},
+{id:"drp3", n:"DR P3", cat:"Top 40", reg:"Nordics", place:"Copenhagen, Denmark", lang:"Danish", url:"https://drliveradio2.akamaized.net/hls/live/2118698/drlydekstra/masterab.m3u8", site:"https://www.dr.dk/lyd/p3", hls:true},
+{id:"comercial", n:"Rádio Comercial", cat:"Top 40", reg:"Iberia & Med", place:"Lisbon, Portugal", lang:"Portuguese", url:"https://stream-icy.bauermedia.pt/comercial.mp3", site:"https://radiocomercial.pt/"},
+{id:"rfmpt", n:"RFM", cat:"Top 40", reg:"Iberia & Med", place:"Lisbon, Portugal", lang:"Portuguese", url:"https://23603.live.streamtheworld.com/RFMAAC.aac", site:"https://rfm.sapo.pt/"},
+{id:"los40", n:"LOS 40", cat:"Top 40", reg:"Iberia & Med", place:"Madrid, Spain", lang:"Spanish", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/Los40.mp3", site:"https://los40.com/"},
+{id:"cadena100", n:"Cadena 100", cat:"Top 40", reg:"Iberia & Med", place:"Madrid, Spain", lang:"Spanish", url:"https://cadena100-cope.flumotion.com/chunks.m3u8", site:"https://www.cadena100.es/", hls:true},
+{id:"deejay", n:"Radio Deejay", cat:"Top 40", reg:"Iberia & Med", place:"Milan, Italy", lang:"Italian", url:"https://StreamCdnC1-4c4b867c89244861ac216426883d1ad0.msvdn.net/radiodeejay/radiodeejay/master_ma.m3u8", site:"https://www.deejay.it/dirette/radiodeejay/", hls:true},
+{id:"powerpop", n:"Power POP", cat:"Top 40", reg:"Beyond Europe", place:"Istanbul, Turkey", lang:"Turkish", url:"https://listen.powerapp.com.tr/powerpop/128/chunks.m3u8", site:"https://www.powerapp.com.tr/", hls:true},
+{id:"galgalatz", n:"Galgalatz 91.8", cat:"Top 40", reg:"Beyond Europe", place:"Tel Aviv, Israel", lang:"Hebrew", url:"https://glzicylv01.bynetcdn.com/glglz_mp3", site:"https://glz.co.il/"},
+{id:"jacaranda", n:"Jacaranda FM", cat:"Top 40", reg:"Beyond Europe", place:"Pretoria, South Africa", lang:"Afrikaans, English", url:"https://edge.iono.fm/xice/jacarandafm_live_medium.aac", site:"https://www.jacarandafm.com/"},
+{id:"kayafm", n:"Kaya 959", cat:"Top 40", reg:"Beyond Europe", place:"Johannesburg, South Africa", lang:"English", url:"https://edge.iono.fm/xice/82_medium.aac", site:"https://kaya959.co.za/"},
+{id:"ecr", n:"East Coast Radio", cat:"Top 40", reg:"Beyond Europe", place:"Durban, South Africa", lang:"English", url:"https://edge.iono.fm/xice/ecr_live_medium.aac", site:"https://www.ecr.co.za/"},
+{id:"coolfm", n:"Cool Fahrenheit 93", cat:"Top 40", reg:"Beyond Europe", place:"Bangkok, Thailand", lang:"Thai", url:"https://coolism-web.cdn.byteark.com/;stream/1", site:"https://coolism.net/"},
+{id:"la100", n:"La 100", cat:"Top 40", reg:"Beyond Europe", place:"Buenos Aires, Argentina", lang:"Spanish", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/FM999_56.mp3", site:"https://la100.cienradios.com/"},
+{id:"star941", n:"Star 94.1", cat:"Top 40", reg:"Beyond Europe", place:"San Diego, USA", lang:"English", url:"https://stream.revma.ihrhls.com/zc253/hls.m3u8", site:"https://www.iheart.com/live/star-941-253/", hls:true},
+{id:"fm957", n:"FM957", cat:"Desktop only", reg:"Nordics", place:"Reykjavik, Iceland", lang:"Icelandic", url:"http://icecast.365net.is:8000/orbFm957.aac", site:"https://www.visir.is/k/fm957"},
+{id:"bylgjan", n:"Bylgjan 98.9", cat:"Desktop only", reg:"Nordics", place:"Reykjavik, Iceland", lang:"Icelandic", url:"http://icecast.365net.is:8000/orbbylgjan.aac", site:"https://bylgjan.visir.is/"},
+{id:"gullbylgjan", n:"Gull Bylgjan 90.9", cat:"Desktop only", reg:"Nordics", place:"Reykjavik, Iceland", lang:"Icelandic", url:"http://icecast.365net.is:8000/orbGullBylgjan.aac", site:"https://bylgjan.visir.is/"}];
 
-  // ---- Forces ----
-  {id:"bfbs1", n:"BFBS UK", cat:"Forces", place:"Forces network, UK",
-   url:"https://listen-ssvcbfbs.sharp-stream.com/ssvcbfbs1.aac", site:"https://www.bfbs.com/radio"},
-  {id:"bfbs2", n:"BFBS Radio 2", cat:"Forces", place:"Forces network, UK",
-   url:"https://listen-ssvcbfbs.sharp-stream.com/ssvcbfbs2.aac", site:"https://www.bfbs.com/radio"},
-  {id:"bfbsgurkha", n:"BFBS Gurkha Radio", cat:"Forces", place:"Nepali service",
-   url:"https://listen-ssvcbfbs.sharp-stream.com/ssvcbfbs3.aac", site:"https://www.bfbs.com/radio"},
-  {id:"bfbsger", n:"BFBS Germany", cat:"Forces", place:"Germany",
-   url:"https://edge-audio-01-cr.sharp-stream.com/ssvcbfbs5.mp3", site:"https://www.bfbs.com/radio"},
-  {id:"bfbscyp", n:"BFBS Cyprus", cat:"Forces", place:"Cyprus",
-   url:"https://listen-ssvcbfbs.sharp-stream.com/ssvcbfbs8.aac", site:"https://www.bfbs.com/radio"},
-  {id:"bfbsbeats", n:"BFBS Beats", cat:"Forces", place:"Dance stream",
-   url:"https://edge-audio-01-cr.sharp-stream.com/ssvcbfbs20.aac?device=bfbs_beats", site:"https://www.bfbs.com/radio"},
-
-  // ---- Rock ----
-  {id:"stubru", n:"VRT Studio Brussel", cat:"Rock", place:"Brussels, Belgium",
-   url:"https://icecast.vrtcdn.be/stubru-high.mp3", site:"https://www.vrt.be/vrtmax/kanalen/stubru/"},
-  {id:"srf3", n:"SRF 3", cat:"Rock", place:"Zurich, Switzerland",
-   url:"https://stream.srg-ssr.ch/srgssr/srf3/aac/192", site:"https://www.srf.ch/radio-srf-3",
-   note:"Use this AAC mount, not the mp3_128 one — that redirects to plain http and Safari blocks it."},
-  {id:"1live", n:"1LIVE", cat:"Rock", place:"Cologne, Germany",
-   url:"https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3",
-   site:"https://www1.wdr.de/radio/1live/",
-   note:"WDR blocks datacenter IPs — returns 403 from a cloud probe. Should open fine from a home or phone connection."},
-  {id:"kerrang", n:"Kerrang!", cat:"Rock", place:"London, UK",
-   url:"https://stream-al.hellorayo.co.uk/kerrang.aac?direct=true",
-   site:"https://www.hellorayo.co.uk/kerrang",
-   note:"Geo-fenced to the UK. Returns HTTP 500 from anywhere else, including here."},
-
-  // ---- Top 40 ----
-  {id:"anr", n:"ANR", cat:"Top 40", place:"Aabenraa, Denmark",
-   url:"https://stream.anr.dk/anr", site:"https://www.anr.dk/"},
-  {id:"bay897", n:"89.7 Bay", cat:"Top 40", place:"Malta",
-   url:"https://stream.v3.network/proxy/897bay/stream.mp3", site:"https://bay.com.mt/"},
-  {id:"riviera", n:"Riviera Radio", cat:"Top 40", place:"Monaco",
-   url:"https://media-ssl.musicradio.com/RivieraRadio", site:"https://rivieraradio.mc/"},
-  {id:"nrj", n:"NRJ", cat:"Top 40", place:"Paris, France",
-   url:"https://streaming.nrjaudio.fm/ou5k6tirv93h", site:"https://www.nrj.fr/player"},
-  {id:"radio538", n:"Radio 538", cat:"Top 40", place:"Amsterdam, Netherlands",
-   url:"https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3",
-   site:"https://www.538.nl/luister-live"},
-  {id:"zoo", n:"Zoo Radio 90.8", cat:"Top 40", place:"Thessaloniki, Greece",
-   url:"https://metromedia.live24.gr/zoo908thess", site:"https://www.zooradio.gr/"},
-  {id:"otvoreni", n:"Otvoreni", cat:"Top 40", place:"Zagreb, Croatia",
-   url:"https://stream.otvoreni.hr/otvoreni", site:"https://www.otvoreni.hr/"},
-  {id:"antena", n:"Antena Sarajevo", cat:"Top 40", place:"Sarajevo, Bosnia",
-   url:"https://stream.rsgmedia.ba/listen/antena_sarajevo/radio.mp3", site:"https://radio.antena.ba/"},
-  {id:"eldo", n:"Eldoradio", cat:"Top 40", place:"Luxembourg City",
-   url:"https://sc.bce.lu/eldo", site:"https://www.eldo.lu/"},
-  {id:"bigfm", n:"bigFM", cat:"Top 40", place:"Stuttgart, Germany",
-   url:"https://stream.bigfm.de/deutschland/mp3-128/radio-browser", site:"https://www.bigfm.de/webradio"},
-  {id:"evropa2", n:"Evropa 2", cat:"Top 40", place:"Prague, Czechia",
-   url:"https://playerservices.streamtheworld.com/api/livestream-redirect/EVROPA2AAC.aac",
-   site:"https://www.evropa2.cz/"},
-  {id:"p3se", n:"P3", cat:"Top 40", place:"Stockholm, Sweden",
-   url:"https://live1.sr.se/p3-mp3-96", site:"https://sverigesradio.se/p3"},
-  {id:"radio1hu", n:"Rádió 1", cat:"Top 40", place:"Budapest, Hungary",
-   url:"https://icast.connectmedia.hu/5201/live.mp3", site:"https://www.radio1.hu/"},
-  {id:"drp3", n:"DR P3", cat:"Top 40", place:"Copenhagen, Denmark",
-   url:"https://drliveradio2.akamaized.net/hls/live/2118698/drlydekstra/masterab.m3u8", hls:true,
-   site:"https://www.dr.dk/lyd/p3"},
-  {id:"deejay", n:"Radio Deejay", cat:"Top 40", place:"Milan, Italy",
-   url:"https://StreamCdnC1-4c4b867c89244861ac216426883d1ad0.msvdn.net/radiodeejay/radiodeejay/master_ma.m3u8",
-   hls:true, site:"https://www.deejay.it/dirette/radiodeejay/"},
-  {id:"star941", n:"Star 94.1", cat:"Top 40", place:"San Diego, USA",
-   url:"https://stream.revma.ihrhls.com/zc253/hls.m3u8", hls:true,
-   site:"https://www.iheart.com/live/star-941-253/"},
-  {id:"dasding", n:"DASDING", cat:"Top 40", place:"Baden-Baden, Germany",
-   url:"https://liveradio.swr.de/d245tgd/dasding/", site:"https://www.dasding.de/livestream",
-   note:"SWR blocks datacenter IPs — 403 from a cloud probe, fine from home."},
-  {id:"youfm", n:"YOU FM", cat:"Top 40", place:"Frankfurt, Germany",
-   url:"https://dispatcher.rndfnk.com/hr/youfm/live/mp3/high", site:"https://www.youfm.de/",
-   note:"Plays, but hr labels this mount 'DASDING vom hr' in its ICY header. The path is hr's own YOU FM one, so the label looks like their mistake, not a wrong stream. Worth a listen to confirm."},
-  {id:"ffh", n:"Hit Radio FFH", cat:"Top 40", place:"Bad Vilbel, Germany",
-   url:"https://mp3.ffh.de/radioffh/hqlivestream.aac", site:"https://www.ffh.de/webradio",
-   note:"403 from a cloud probe, same datacenter-block pattern as the other German broadcasters."},
-
-  // ---- HTTP only: will not play on an https-hosted page ----
-  {id:"fm957", n:"FM957", cat:"Top 40", place:"Reykjavik, Iceland",
-   url:"http://icecast.365net.is:8000/orbFm957.aac", site:"https://www.visir.is/k/fm957",
-   note:"Sýn's Icecast has no https and no HLS sibling. Blocked on an https page; the link out is the way in."},
-  {id:"bylgjan", n:"Bylgjan", cat:"Top 40", place:"Reykjavik, Iceland",
-   url:"http://icecast.365net.is:8000/orbbylgjan.aac", site:"https://bylgjan.visir.is/",
-   note:"Same Icelandic Icecast, same http-only limitation."},
-  {id:"k100", n:"K100", cat:"Top 40", place:"Reykjavik, Iceland",
-   url:"", site:"https://k100.mbl.is/",
-   note:"No public stream URL found. mbl.is sits behind a bot challenge and isn't in Radio Browser. Link out only until you capture the mount from Safari's network inspector."}
-];
-
-const CATS = ["Talk","Rock","Top 40","Forces","Other"];
-const KEY = "receiver.v1";
+const CATS = ["Talk","Rock","00s & Retro","Top 40","Forces","Desktop only","Other"];
+const REGS = ["Britain","France & Low Countries","Central Europe","Nordics","Baltics","Balkans","Iberia & Med","Beyond Europe","Elsewhere"];
+const KEY = "receiver.v2";
 const SLATS = 22;
 
-/* ---------- storage, with graceful failure ---------- */
 const mem = {};
 const store = {
   get(k){ try{ return localStorage.getItem(k); }catch(e){ return mem[k] ?? null; } },
   set(k,v){ try{ localStorage.setItem(k,v); }catch(e){ mem[k]=v; } }
 };
-let state = {custom:[], fav:[], hidden:[], last:null};
-try{ Object.assign(state, JSON.parse(store.get(KEY) || "{}")); }catch(e){}
+let state = {custom:[], fav:[], hidden:[]};
+try{
+  Object.assign(state, JSON.parse(store.get(KEY) || store.get("receiver.v1") || "{}"));
+}catch(e){}
+state.custom = state.custom || []; state.fav = state.fav || []; state.hidden = state.hidden || [];
 const save = () => store.set(KEY, JSON.stringify(state));
 
-/* ---------- derived library ---------- */
 const httpsPage = location.protocol === "https:";
-function library(){
-  const built = BUILT.filter(s => !state.hidden.includes(s.id));
-  return built.concat(state.custom);
-}
-function insecure(s){ return httpsPage && s.url && s.url.startsWith("http://"); }
-function playable(s){ return !!s.url && !insecure(s); }
+const library = () => BUILT.filter(s => !state.hidden.includes(s.id)).concat(state.custom);
+const blocked = s => httpsPage && s.url.startsWith("http://");
 
-/* ---------- elements ---------- */
 const $ = s => document.querySelector(s);
-const listEl = $("#list"), chipsEl = $("#chips"), grille = $("#grille");
+const listEl = $("#list"), grille = $("#grille"), countEl = $("#count");
 const pFreq = $("#pFreq"), pName = $("#pName"), lamp = $("#lamp"),
       statusEl = $("#status"), stopBtn = $("#stop");
 
 for(let i=0;i<SLATS;i++){ const d=document.createElement("div"); d.className="slat"; grille.appendChild(d); }
 const slats = [...document.querySelectorAll(".slat")];
 
-/* ---------- audio ---------- */
 const audio = new Audio();
 audio.preload = "none";
 let current = null, tries = 0, retryTimer = null, animTimer = null, hls = null;
 
 function setReadout(freq, name, lampState, status){
-  pFreq.textContent = freq;
-  pName.textContent = name;
+  pFreq.textContent = freq; pName.textContent = name;
   lamp.className = "lamp" + (lampState ? " " + lampState : "");
-  statusEl.textContent = status;
-  stopBtn.hidden = !current;
+  statusEl.textContent = status; stopBtn.hidden = !current;
 }
-
 function animate(on){
   clearInterval(animTimer);
   document.body.classList.toggle("playing", on);
@@ -395,17 +307,12 @@ function animate(on){
     });
   }, 190);
 }
-
 async function tune(s){
   if(current && current.id === s.id){ stop(); return; }
-  stop(true);
-  current = s; tries = 0;
-  state.last = s.id; save();
-  render();
+  stop(true); current = s; tries = 0; render();
   setReadout("TUNING", s.n, "warm", "Connecting to " + s.n + "…");
   await connect();
 }
-
 async function connect(){
   const s = current; if(!s) return;
   const native = audio.canPlayType("application/vnd.apple.mpegurl") !== "";
@@ -414,44 +321,32 @@ async function connect(){
       await loadHls();
       if(hls) hls.destroy();
       hls = new Hls(); hls.loadSource(s.url); hls.attachMedia(audio);
-    }else{
-      audio.src = s.url;
-    }
-    await audio.play();
-    onLive();
-  }catch(err){
-    onFail(err);
-  }
+    }else{ audio.src = s.url; }
+    await audio.play(); onLive();
+  }catch(err){ onFail(); }
 }
-
 function loadHls(){
   if(window.Hls) return Promise.resolve();
   return new Promise((res, rej) => {
     const sc = document.createElement("script");
     sc.src = "https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js";
-    sc.onload = res; sc.onerror = rej;
-    document.head.appendChild(sc);
+    sc.onload = res; sc.onerror = rej; document.head.appendChild(sc);
   });
 }
-
 function onLive(){
   const s = current; if(!s) return;
   tries = 0;
-  setReadout("ON AIR", s.n, "on", s.place);
+  setReadout("ON AIR", s.n, "on", s.place + " · " + s.lang);
   animate(true);
   if("mediaSession" in navigator){
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: s.n, artist: s.place, album: "Receiver"
-    });
+    navigator.mediaSession.metadata = new MediaMetadata({title:s.n, artist:s.place, album:"Receiver"});
     navigator.mediaSession.playbackState = "playing";
   }
   render();
 }
-
 function onFail(){
   const s = current; if(!s) return;
-  tries++;
-  animate(false);
+  tries++; animate(false);
   if(tries <= 4){
     setReadout("RETRY", s.n, "warm", "Stream dropped. Retry " + tries + " of 4…");
     retryTimer = setTimeout(connect, 900 * tries);
@@ -460,7 +355,6 @@ function onFail(){
     current = null; render();
   }
 }
-
 function stop(quiet){
   clearTimeout(retryTimer);
   try{ audio.pause(); audio.removeAttribute("src"); audio.load(); }catch(e){}
@@ -469,11 +363,9 @@ function stop(quiet){
   if("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused";
   if(!quiet){ setReadout("OFF","standby","","Pick a station."); render(); }
 }
-
 audio.addEventListener("error", onFail);
 audio.addEventListener("ended", () => { if(current) onFail(); });
 audio.addEventListener("playing", () => { if(current) onLive(); });
-
 if("mediaSession" in navigator){
   try{
     navigator.mediaSession.setActionHandler("play", () => current && audio.play());
@@ -483,64 +375,60 @@ if("mediaSession" in navigator){
 }
 stopBtn.onclick = () => stop();
 
-/* ---------- rendering ---------- */
-let filter = "All", query = "";
+let fCat = "All", fReg = "All", query = "";
 
-function renderChips(){
-  const present = [...new Set(library().map(s => s.cat))];
-  const order = ["All", ...CATS.filter(c => present.includes(c)), "Saved"];
-  chipsEl.innerHTML = order.map(c =>
-    `<button class="chip" data-c="${c}" aria-pressed="${c===filter}">${c}</button>`).join("");
+function chipRow(el, all, active, key){
+  el.innerHTML = ["All", ...all, ...(key==="cat" ? ["Saved"] : [])]
+    .map(c => `<button class="chip" data-v="${c}" aria-pressed="${c===active}">${c}</button>`).join("");
 }
-
-function render(){
-  renderChips();
-  let rows = library();
-  if(filter === "Saved") rows = rows.filter(s => state.fav.includes(s.id));
-  else if(filter !== "All") rows = rows.filter(s => s.cat === filter);
+function matches(s){
+  if(fCat === "Saved"){ if(!state.fav.includes(s.id)) return false; }
+  else if(fCat !== "All" && s.cat !== fCat) return false;
+  if(fReg !== "All" && s.reg !== fReg) return false;
   if(query){
     const q = query.toLowerCase();
-    rows = rows.filter(s => (s.n + " " + s.place + " " + s.cat).toLowerCase().includes(q));
+    if(!(s.n+" "+s.place+" "+s.lang+" "+s.cat).toLowerCase().includes(q)) return false;
   }
-  rows.sort((a,b) => {
+  return true;
+}
+function render(){
+  const lib = library();
+  const present = c => lib.some(s => s.cat === c);
+  chipRow($("#chipsFormat"), CATS.filter(present), fCat, "cat");
+  chipRow($("#chipsRegion"), REGS.filter(r => lib.some(s => s.reg === r)), fReg, "reg");
+
+  const rows = lib.filter(matches).sort((a,b) => {
     const fa = state.fav.includes(a.id), fb = state.fav.includes(b.id);
     if(fa !== fb) return fa ? -1 : 1;
     return a.n.localeCompare(b.n);
   });
+  countEl.textContent = rows.length + (rows.length === 1 ? " station" : " stations");
 
   if(!rows.length){
-    listEl.innerHTML = `<div class="empty">Nothing here yet. Add a station and it'll stay on this phone.</div>`;
+    listEl.innerHTML = `<div class="empty">Nothing matches. Clear a filter, or add a station of your own.</div>`;
     return;
   }
-
   listEl.innerHTML = rows.map(s => {
     const live = current && current.id === s.id;
-    const can = playable(s);
     const tags = [];
     if(s.hls) tags.push(`<span class="tag">HLS</span>`);
-    if(insecure(s)) tags.push(`<span class="tag warn">HTTP</span>`);
-    if(!s.url) tags.push(`<span class="tag warn">NO URL</span>`);
     if(s.custom) tags.push(`<span class="tag">MINE</span>`);
-    const note = !can && s.note ? `<div class="st-note">${esc(s.note)}</div>` : "";
-    return `
-      <div class="st ${live?"live":""} ${can?"":"blocked"}">
-        <div class="st-body" data-play="${s.id}" role="button" tabindex="0">
-          <div class="st-name">${esc(s.n)} ${tags.join(" ")}</div>
-          <div class="st-sub">${esc(s.place)} · ${esc(s.cat)}</div>
-          ${note}
-        </div>
-        <div class="st-act">
-          <button class="fav ${state.fav.includes(s.id)?"on":""}" data-fav="${s.id}" aria-label="Save">★</button>
-          ${s.site ? `<a class="out" href="${s.site}" target="_blank" rel="noopener">Listen page</a>` : ""}
-          ${s.custom ? `<button class="out" data-edit="${s.id}">Edit</button>` : ""}
-        </div>
-      </div>`;
+    return `<div class="st ${live?"live":""}">
+      <div class="st-body" data-play="${s.id}" role="button" tabindex="0">
+        <div class="st-name">${esc(s.n)} ${tags.join(" ")}</div>
+        <div class="st-sub">${esc(s.place)} · ${esc(s.lang)}</div>
+      </div>
+      <div class="st-act">
+        <button class="fav ${state.fav.includes(s.id)?"on":""}" data-fav="${s.id}" aria-label="Save">★</button>
+        ${s.site ? `<a class="out" href="${s.site}" target="_blank" rel="noopener">Listen page</a>` : ""}
+        ${s.custom ? `<button class="out" data-edit="${s.id}">Edit</button>` : ""}
+      </div></div>`;
   }).join("");
 }
-
 function esc(t){ return String(t==null?"":t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
-chipsEl.onclick = e => { const b = e.target.closest(".chip"); if(!b) return; filter = b.dataset.c; render(); };
+$("#chipsFormat").onclick = e => { const b=e.target.closest(".chip"); if(b){ fCat=b.dataset.v; render(); } };
+$("#chipsRegion").onclick = e => { const b=e.target.closest(".chip"); if(b){ fReg=b.dataset.v; render(); } };
 $("#search").oninput = e => { query = e.target.value.trim(); render(); };
 
 listEl.addEventListener("click", e => {
@@ -556,15 +444,14 @@ listEl.addEventListener("click", e => {
   if(pl){
     const s = library().find(x => x.id === pl.dataset.play);
     if(!s) return;
-    if(!s.url){ statusEl.textContent = "No stream URL for " + s.n + " — open the listen page."; return; }
-    if(insecure(s)){ statusEl.textContent = s.n + " is http-only. Safari blocks it here; use the listen page."; return; }
+    if(blocked(s)){ statusEl.textContent = s.n + " runs on your Mac, not here. Open the listen page instead."; return; }
     tune(s);
   }
 });
 
-/* ---------- add / edit ---------- */
 const sheet = $("#sheet");
 $("#fCat").innerHTML = CATS.map(c => `<option>${c}</option>`).join("");
+$("#fReg").innerHTML = REGS.map(c => `<option>${c}</option>`).join("");
 let editing = null;
 
 function openSheet(s){
@@ -574,35 +461,34 @@ function openSheet(s){
   $("#fUrl").value = s ? s.url : "";
   $("#fSite").value = s && s.site ? s.site : "";
   $("#fPlace").value = s ? s.place : "";
+  $("#fLang").value = s && s.lang ? s.lang : "";
   $("#fCat").value = s ? s.cat : "Other";
-  $("#fMsg").textContent = "";
-  $("#delRow").hidden = !s;
+  $("#fReg").value = s ? s.reg : "Elsewhere";
+  $("#fMsg").textContent = ""; $("#delRow").hidden = !s;
   sheet.showModal();
 }
 $("#addBtn").onclick = () => openSheet(null);
 $("#fCancel").onclick = () => sheet.close();
-
 $("#fSave").onclick = () => {
   const n = $("#fName").value.trim(), url = $("#fUrl").value.trim();
   if(!n){ $("#fMsg").textContent = "Give it a name."; return; }
   if(!/^https?:\/\//i.test(url)){ $("#fMsg").textContent = "The stream URL needs to start with http:// or https://"; return; }
-  if(httpsPage && url.startsWith("http://")) $("#fMsg").textContent = "Saved, but http streams won't play on an https page.";
+  let warn = "";
+  if(httpsPage && url.startsWith("http://")) warn = "Saved under Desktop only — http streams can't play on an https page.";
   const rec = {
     id: editing ? editing.id : "u" + Date.now().toString(36),
-    n, url,
-    site: $("#fSite").value.trim(),
+    n, url, site: $("#fSite").value.trim(),
     place: $("#fPlace").value.trim() || "Added by you",
-    cat: $("#fCat").value,
-    hls: /\.m3u8(\?|$)/i.test(url),
-    custom: true
+    lang: $("#fLang").value.trim() || "—",
+    cat: warn ? "Desktop only" : $("#fCat").value,
+    reg: $("#fReg").value,
+    hls: /\.m3u8(\?|$)/i.test(url), custom: true
   };
-  state.custom = editing
-    ? state.custom.map(s => s.id === rec.id ? rec : s)
-    : state.custom.concat(rec);
+  state.custom = editing ? state.custom.map(s => s.id === rec.id ? rec : s) : state.custom.concat(rec);
   save(); render();
-  setTimeout(() => sheet.close(), $("#fMsg").textContent ? 1400 : 0);
+  $("#fMsg").textContent = warn;
+  setTimeout(() => sheet.close(), warn ? 1600 : 0);
 };
-
 $("#fDelete").onclick = () => {
   if(!editing) return;
   if(editing.custom) state.custom = state.custom.filter(s => s.id !== editing.id);
@@ -611,11 +497,10 @@ $("#fDelete").onclick = () => {
   save(); render(); sheet.close();
 };
 
-/* ---------- export / import ---------- */
 const io = $("#ioSheet");
 $("#expBtn").onclick = () => {
   $("#ioTitle").textContent = "Export library";
-  $("#ioHelp").textContent = "Your added stations, saved marks, and anything you removed. Copy it somewhere safe.";
+  $("#ioHelp").textContent = "Stations you added, saved marks, and anything you removed. Copy it somewhere safe.";
   $("#ioText").value = JSON.stringify(state, null, 2);
   $("#ioGo").hidden = true; $("#ioMsg").textContent = "";
   io.showModal(); $("#ioText").select();
@@ -630,15 +515,13 @@ $("#ioClose").onclick = () => io.close();
 $("#ioGo").onclick = () => {
   try{
     const d = JSON.parse($("#ioText").value);
-    state = {custom:d.custom||[], fav:d.fav||[], hidden:d.hidden||[], last:d.last||null};
+    state = {custom:d.custom||[], fav:d.fav||[], hidden:d.hidden||[]};
     save(); render(); io.close();
   }catch(e){ $("#ioMsg").textContent = "That isn't valid JSON — check for a truncated paste."; }
 };
 
-/* ---------- boot ---------- */
 render();
-setReadout("OFF","standby","", httpsPage
-  ? "Pick a station."
+setReadout("OFF","standby","", httpsPage ? "Pick a station."
   : "Pick a station. Served over http, so every stream here will play.");
 </script>
 </body>
