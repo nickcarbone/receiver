@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="no">
+<meta name="theme-color" content="#16191b">
+<title>Receiver</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23252a2e'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%238d959c' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23d9a441'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --shell:#16191b; --panel:#252a2e; --panel-hi:#2f353a; --slat:#3a4046;
+    --etch:#8d959c; --dim:#a7afb5; --readout:#e8e4dc; --lamp:#e0a94a; --lamp-hi:#f3c470;
+    --hair:rgba(255,255,255,.07); --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  [hidden]{display:none!important}
+  html,body{margin:0;padding:0}
+  html.lock,html.lock body{overflow:hidden}
+  body{background:var(--shell);color:var(--readout);
+    font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
+  body.has-dock{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+  button:disabled{opacity:.35;cursor:default}
+  input,select,textarea{font:inherit}
+  a{color:var(--lamp)}
+  svg{display:block}
+
+  .icon{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;color:#c3cad0;border-radius:10px;text-decoration:none}
+  .icon:active{background:rgba(255,255,255,.06)}
+  .top{display:flex;align-items:center;justify-content:space-between;padding:calc(8px + env(safe-area-inset-top)) 8px 0 18px}
+  .mark{font:600 13px var(--mono);letter-spacing:.18em;color:var(--etch)}
+  .acts{display:flex;gap:2px}
+
+  .grille{position:relative;height:64px;border-radius:6px;overflow:hidden;display:flex;gap:3px;align-items:flex-end;padding:6px 8px;
+    background:linear-gradient(#1c2023,#131618);box-shadow:inset 0 2px 6px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.05)}
+  .grille.big{height:112px;padding:7px 10px;margin:16px 16px 0}
+  .slat{flex:1;height:26%;background:var(--slat);border-radius:1px;transform:skewX(-13deg);transform-origin:bottom;
+    transition:height .34s cubic-bezier(.3,.7,.3,1),background .34s}
+  .playing .slat{background:#4b535a}
+  .np{position:absolute;left:0;right:0;top:0;padding:8px 11px 16px;z-index:1;
+    font:600 12.5px/1.3 var(--mono);color:var(--readout);
+    background:linear-gradient(rgba(19,22,24,.94) 58%,rgba(19,22,24,0));
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+  .empty{padding:34px 20px;text-align:center;color:var(--etch);font-size:14px}
+
+  .chips{display:flex;gap:7px;overflow-x:auto;padding:9px 14px 0;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .chips::-webkit-scrollbar{display:none}
+  .chips.sub{padding-top:7px}
+  .chip{flex:0 0 auto;padding:7px 13px;border-radius:16px;font-size:13px;
+    color:var(--etch);border:1px solid var(--hair);background:rgba(255,255,255,.02);white-space:nowrap}
+  .chip[aria-pressed="true"]{color:#141719;background:var(--readout);border-color:var(--readout);font-weight:600}
+  .chips.sub .chip[aria-pressed="true"]{background:#4b535a;color:var(--readout);border-color:#5a6167}
+  .searchwrap{padding:10px 14px 2px}
+  .search{width:100%;min-height:44px;padding:9px 12px;border-radius:10px;background:#0f1214;border:1px solid var(--hair);color:var(--readout);
+    -webkit-appearance:none;appearance:none}
+  .search::placeholder{color:#7d858b}
+  .count{padding:7px 16px 0;font-size:12px;color:var(--dim)}
+
+  .list{padding:6px 10px 20px;display:flex;flex-direction:column;gap:6px}
+  .st{display:flex;align-items:center;gap:10px;padding:4px 2px 4px 14px;border-radius:9px;
+    background:var(--panel);border:1px solid var(--hair);text-align:left;width:100%}
+  .st:active{background:var(--panel-hi)}
+  .st.live{border-color:rgba(224,169,74,.5);background:#2c3136}
+  .st-body{flex:1;min-width:0;padding:7px 0;cursor:pointer}
+  .st-name{font-weight:600;font-size:15px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .st-sub{font-size:12.5px;color:var(--etch);margin-top:2px}
+  .st-act{display:flex;align-items:center;gap:2px}
+  .fav{font-size:17px;line-height:1;color:#4f575d;min-width:44px;min-height:44px;
+    display:flex;align-items:center;justify-content:center;border-radius:8px}
+  .fav.on{color:var(--lamp)}
+  .out{font-size:11.5px;color:var(--etch);border:1px solid var(--hair);border-radius:14px;
+    padding:0 10px;min-height:30px;display:inline-flex;align-items:center;text-decoration:none;white-space:nowrap}
+  .tag{font:600 9.5px/1 var(--mono);letter-spacing:.06em;padding:3px 5px;border-radius:3px;background:#3a4046;color:#c3cad0}
+  .bar{display:flex;gap:8px;padding:2px 14px 26px;justify-content:center;flex-wrap:wrap}
+  .bar button{font-size:12.5px;color:var(--etch);border:1px solid var(--hair);border-radius:16px;padding:0 13px;min-height:34px}
+  .bar button[aria-pressed="true"]{color:var(--readout);border-color:#5a6167;background:#2f353a}
+
+  .lamp{width:7px;height:7px;border-radius:50%;background:#3d4348;transition:background .25s,box-shadow .25s}
+  .lamp.on{background:var(--lamp);box-shadow:0 0 7px 1px rgba(224,169,74,.75)}
+  .lamp.warm{background:#7a6234}
+
+  .dock{position:fixed;left:0;right:0;bottom:0;z-index:30;
+    background:linear-gradient(#2f353a,#22272b 55%,#1d2124);border-top:1px solid #101315;
+    box-shadow:0 -10px 28px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06);
+    border-radius:18px 18px 0 0;padding:7px 10px calc(12px + env(safe-area-inset-bottom))}
+  .grab{width:36px;height:5px;border-radius:3px;background:#4a5157;margin:0 auto 7px}
+  .dock-row{display:flex;align-items:center;gap:6px}
+  .mini{flex:1;min-width:0;display:flex;align-items:center;gap:11px;text-align:left;padding-left:4px;min-height:48px}
+  .mini-p{width:46px;height:46px;flex:0 0 46px;border-radius:23px;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 34% 28%,#33393e,#1a1d20 72%);box-shadow:0 0 0 2px #4a5157,inset 0 2px 6px rgba(0,0,0,.75)}
+  .mini-b{min-width:0;display:block}
+  .mini-n,.mini-s{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mini-n{font-weight:600}
+  .mini-s{font-size:12.5px;color:var(--dim)}
+  .rnd{width:44px;height:44px;flex:0 0 44px;border-radius:22px;border:1px solid rgba(255,255,255,.12);
+    display:flex;align-items:center;justify-content:center;color:var(--readout)}
+  .rnd.amb{width:52px;flex-basis:52px;border-color:rgba(224,169,74,.6);background:#3a3324;color:var(--lamp-hi)}
+
+  .player{position:fixed;inset:0;z-index:40;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+    background:linear-gradient(#2a2f33,#1d2124 38%,#141719);display:flex;flex-direction:column;
+    padding-bottom:calc(22px + env(safe-area-inset-bottom));
+    transform:translateY(100%);visibility:hidden;
+    transition:transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s linear .3s}
+  .player.open{transform:none;visibility:visible;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+  @media (prefers-reduced-motion:reduce){.player,.player.open{transition:none}.slat{transition:none}}
+  .p-top{display:flex;align-items:center;justify-content:space-between;padding:calc(4px + env(safe-area-inset-top)) 12px 0}
+  .p-cyc{font:600 12px var(--mono);letter-spacing:.14em;color:var(--dim)}
+  .port{align-self:center;margin-top:14px;width:200px;height:200px;flex:0 0 200px;border-radius:50%;
+    background:radial-gradient(circle at 34% 28%,#363c41,#1a1d20 72%);
+    box-shadow:0 0 0 3px #4a5157,0 0 0 5px #16191b,inset 0 6px 16px rgba(0,0,0,.75),inset 0 -3px 8px rgba(255,255,255,.05),0 18px 40px rgba(0,0,0,.5);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;
+    touch-action:pan-y;-webkit-user-select:none;user-select:none}
+  .p-freq{font:600 13px var(--mono);letter-spacing:.14em;color:var(--etch)}
+  .p-name{font-weight:650;font-size:21px;line-height:1.15;max-width:160px;overflow:hidden;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+  .port .lamp{width:9px;height:9px}
+  .hint{text-align:center;font-size:11.5px;color:var(--etch);padding-top:12px}
+  .p-status{padding:12px 18px 0;text-align:center;font-size:13.5px;color:var(--dim);min-height:32px}
+  .p-status b{font:600 13.5px var(--mono);color:var(--readout)}
+  .ctrl{display:flex;align-items:center;justify-content:center;gap:26px;padding-top:22px}
+  .ctl{width:54px;height:54px;border-radius:27px;border:1px solid rgba(255,255,255,.1);
+    background:linear-gradient(#2a3034,#1f2427);color:var(--readout);display:flex;align-items:center;justify-content:center}
+  .bignext{width:88px;height:88px;border-radius:44px;border:2px solid rgba(224,169,74,.75);
+    background:radial-gradient(circle at 40% 30%,#3e3626,#241f16);color:var(--lamp-hi);
+    box-shadow:0 0 24px rgba(224,169,74,.22),inset 0 1px 0 rgba(255,255,255,.08);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:650;letter-spacing:.04em}
+  .bignext:active,.ctl:active,.rnd:active{filter:brightness(1.2)}
+  .pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:24px 18px 0}
+  .pair button,.pair a{min-height:48px;display:flex;align-items:center;justify-content:center;text-decoration:none;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:#c3cad0;font-size:14px;font-weight:600}
+  .pair .keep[aria-pressed="true"]{border-color:rgba(224,169,74,.55);background:rgba(224,169,74,.1);color:var(--lamp-hi)}
+  .pills{display:flex;justify-content:center;gap:8px;padding-top:22px;margin-top:auto}
+  .pills:empty{display:none}
+  .pill{color:#c3cad0;border:1px solid rgba(255,255,255,.1);border-radius:19px;padding:0 15px;min-height:38px;
+    font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;text-decoration:none}
+  .pill.lit{color:var(--lamp-hi);border-color:rgba(224,169,74,.5)}
+
+  dialog{border:0;border-radius:14px 14px 0 0;padding:0;width:100%;max-width:520px;max-height:92vh;
+    background:var(--panel);color:var(--readout);margin:auto auto 0}
+  dialog::backdrop{background:rgba(0,0,0,.6)}
+  .sheet{padding:18px 18px calc(20px + env(safe-area-inset-bottom))}
+  .sheet h2{font-size:16px;margin:0 0 3px}
+  .sheet p{font-size:12.5px;color:var(--etch);margin:0 0 14px}
+  .f{display:block;margin-bottom:10px}
+  .f span{display:block;font-size:12px;color:var(--etch);margin-bottom:4px}
+  .f input,.f select,.f textarea{width:100%;padding:9px 11px;border-radius:8px;
+    background:#171a1d;border:1px solid var(--hair);color:var(--readout)}
+  .f input::placeholder,.f textarea::placeholder{color:#5f676d}
+  .f select{-webkit-appearance:none;appearance:none;padding-right:30px;
+    background:#171a1d url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238d959c' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 12px center}
+  .finder{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--hair)}
+  .results{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+  .res{display:block;width:100%;text-align:left;padding:8px 10px;border-radius:8px;background:#1f2327;border:1px solid var(--hair)}
+  .res b{display:block;font-size:13.5px;font-weight:600}
+  .res small{display:block;font-size:11.5px;color:var(--etch);margin-top:1px}
+  .res.no b{color:#7d858b}
+  .res-note{font-size:12px;color:var(--etch);padding:4px 2px}
+  .sheet-act{display:flex;gap:9px;margin-top:14px}
+  .sheet-act button{flex:1;padding:11px;border-radius:9px;font-weight:600;font-size:14px}
+  .save{background:var(--readout);color:#171a1d}
+  .cancel{border:1px solid var(--hair);color:var(--etch)}
+  .danger{color:#c98080}
+  .hrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--hair);font-size:14px}
+  .hrow .pill{flex:0 0 auto}
+  .msg{font-size:12.5px;color:var(--lamp);min-height:17px;margin-top:8px}
+</style>
+</head>
+<body>
+
+<main id="home">
+  <header class="top">
+    <div class="mark">RECEIVER</div>
+    <div class="acts">
+      <button class="icon" id="addBtn" aria-label="Add a station"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    </div>
+  </header>
+  <div class="searchwrap"><input class="search" id="search" type="search" enterkeyhint="search" placeholder="Search name, city, or language" aria-label="Search stations" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+  <div class="chips" id="chipsFormat"></div>
+  <div class="chips sub" id="chipsRegion"></div>
+  <div class="count" id="count"></div>
+  <div class="list" id="list"></div>
+  <div class="bar">
+    <button id="manageBtn" aria-pressed="false">Edit list</button>
+    <button id="restoreBtn" hidden>Hidden</button>
+    <button id="expBtn">Export</button>
+    <button id="impBtn">Import</button>
+  </div>
+</main>
+
+<div class="dock" id="dock" hidden>
+  <div class="grab"></div>
+  <div class="dock-row">
+    <button class="mini" id="miniOpen" aria-label="Open player">
+      <span class="mini-p"><span class="lamp" id="miniLamp"></span></span>
+      <span class="mini-b"><span class="mini-n" id="miniName"></span><span class="mini-s" id="miniSub"></span></span>
+    </button>
+    <button class="rnd" id="miniToggle" aria-label="Stop"></button>
+    <button class="rnd amb" id="miniNext" aria-label="Next station"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 6v12l8-6zM4 6v12l8-6z"/></svg></button>
+  </div>
+</div>
+
+<section class="player" id="player" role="dialog" aria-modal="true" aria-label="Now playing" aria-hidden="true" inert>
+  <div class="p-top" id="pTop">
+    <button class="icon" id="closePlayer" aria-label="Close player"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="p-cyc" id="pCyc"></div>
+    <button class="icon" id="airBtn" aria-label="Play on another speaker (AirPlay)" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1"/><path d="M12 15l5 6H7z"/></svg></button>
+    <span class="icon" id="airGap" aria-hidden="true"></span>
+  </div>
+  <div class="port" id="porthole">
+    <div class="p-freq" id="pFreq">OFF</div>
+    <div class="p-name" id="pName">standby</div>
+    <div class="lamp" id="lamp"></div>
+  </div>
+  <div class="hint">Swipe the dial to change station</div>
+  <div class="grille big" id="grille"><div class="np" id="np" hidden></div></div>
+  <div class="p-status" id="status">Pick a station.</div>
+  <div class="ctrl">
+    <button class="ctl" id="backBtn" aria-label="Previous station"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 6v12L3 12zM20 6v12l-8-6z"/></svg></button>
+    <button class="ctl" id="stop" aria-label="Stop"></button>
+    <button class="bignext" id="nextBtn" aria-label="Next station"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 6v12l8-6zM4 6v12l8-6z"/></svg><span aria-hidden="true">NEXT</span></button>
+  </div>
+  <div class="pair">
+    <button class="keep" id="keepBtn" aria-pressed="false">★ Keep</button>
+    <a id="siteLink" href="#" target="_blank" rel="noopener">Listen page</a>
+  </div>
+  <div class="pills">
+    <button class="pill" id="sleepBtn">Sleep</button>
+  </div>
+</section>
+
+<dialog id="sheet"><div class="sheet">
+  <h2 id="shTitle">Add a station</h2>
+  <p id="shHelp">Search for it, or paste a direct stream URL — an Icecast or Shoutcast mount, or an .m3u8. A homepage link won't play.</p>
+  <div class="finder" id="finder">
+    <label class="f" style="margin-bottom:0"><span>Find a station</span><input id="fFind" type="search" enterkeyhint="search" placeholder="Search Radio Browser by name" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+    <div class="results" id="fResults"></div>
+  </div>
+  <label class="f"><span>Name</span><input id="fName" placeholder="Radio Nova"></label>
+  <label class="f"><span>Stream URL</span><input id="fUrl" placeholder="https://…" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+  <label class="f"><span>Where to listen on the web (optional)</span><input id="fSite" placeholder="https://…" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+  <label class="f"><span>City and country</span><input id="fPlace" placeholder="Paris, France"></label>
+  <label class="f"><span>Language</span><input id="fLang" placeholder="French"></label>
+  <label class="f"><span>Format</span><select id="fCat"></select></label>
+  <label class="f"><span>Region</span><select id="fReg"></select></label>
+  <div class="msg" id="fMsg"></div>
+  <div class="sheet-act">
+    <button class="cancel" id="fCancel">Cancel</button>
+    <button class="save" id="fSave">Save station</button>
+  </div>
+  <div class="sheet-act" id="delRow" hidden style="margin-top:9px">
+    <button class="cancel" id="fRevert" hidden>Revert to original</button>
+    <button class="cancel danger" id="fDelete">Remove this station</button>
+  </div>
+</div></dialog>
+
+<dialog id="ioSheet"><div class="sheet">
+  <h2 id="ioTitle">Library</h2>
+  <p id="ioHelp"></p>
+  <label class="f"><textarea id="ioText" rows="9" style="font:12px/1.4 ui-monospace,Menlo,monospace"></textarea></label>
+  <div class="msg" id="ioMsg"></div>
+  <div class="sheet-act">
+    <button class="cancel" id="ioClose">Close</button>
+    <button class="save" id="ioGo" hidden>Import</button>
+  </div>
+</div></dialog>
+
+<dialog id="hidSheet"><div class="sheet">
+  <h2>Hidden stations</h2>
+  <p>Built-in stations you've hidden. Restore puts them back in the list.</p>
+  <div id="hidList"></div>
+  <div class="sheet-act"><button class="cancel" id="hidClose">Close</button></div>
+</div></dialog>
+
+<script>
+/* Receiver — mobile.
+   Track titles come from Triton's public now-playing feed for StreamTheWorld
+   mounts and from Icecast status-json on a short allow-list. Next and previous
+   step through saved stations, or through the list on screen when nothing is
+   saved. Every stream below was probed for HTTPS, status and actual audio bytes. */
+
+const BUILT = [
+{id:"monocle", n:"Monocle 24", cat:"Talk", reg:"Britain", place:"London, UK", lang:"English", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/MONOCLE_24AAC.aac", site:"https://monocle.com/radio/"},
+{id:"bbcws", n:"BBC World Service", cat:"Talk", reg:"Britain", place:"London, UK", lang:"English", url:"https://stream.live.vc.bbcmedia.co.uk/bbc_world_service", site:"https://www.bbc.co.uk/sounds/play/live:bbc_world_service"},
+{id:"radio1si", n:"Radio 1", cat:"Talk", reg:"Balkans", place:"Ljubljana, Slovenia", lang:"Slovene", url:"https://live.radio1.si/Radio1", site:"https://radio1.si/"},
+{id:"bfbs1", n:"BFBS UK", cat:"Forces", reg:"Britain", place:"Forces network, UK", lang:"English", url:"https://listen-ssvcbfbs.sharp-stream.com/ssvcbfbs1.aac", site:"https://www.bfbs.com/radio"},
+{id:"bfbs2", n:"BFBS Radio 2", cat:"Forces", reg:"Britain", place:"Forces network, UK", lang:"English", url:"https://listen-ssvcbfbs.sharp-stream.com/ssvcbfbs2.aac", site:"https://www.bfbs.com/radio"},
+{id:"bfbsgurkha", n:"BFBS Gurkha Radio", cat:"Forces", reg:"Britain", place:"Nepali service", lang:"Nepali", url:"https://listen-ssvcbfbs.sharp-stream.com/ssvcbfbs3.aac", site:"https://www.bfbs.com/radio"},
+{id:"bfbsger", n:"BFBS Germany", cat:"Forces", reg:"Britain", place:"Germany", lang:"English", url:"https://edge-audio-01-cr.sharp-stream.com/ssvcbfbs5.mp3", site:"https://www.bfbs.com/radio"},
+{id:"bfbscyp", n:"BFBS Cyprus", cat:"Forces", reg:"Britain", place:"Cyprus", lang:"English", url:"https://listen-ssvcbfbs.sharp-stream.com/ssvcbfbs8.aac", site:"https://www.bfbs.com/radio"},
+{id:"bfbsbeats", n:"BFBS Beats", cat:"Forces", reg:"Britain", place:"Dance stream", lang:"English", url:"https://edge-audio-01-cr.sharp-stream.com/ssvcbfbs20.aac?device=bfbs_beats", site:"https://www.bfbs.com/radio"},
+{id:"stubru", n:"VRT Studio Brussel", cat:"Rock", reg:"France & Low Countries", place:"Brussels, Belgium", lang:"Dutch", url:"https://icecast.vrtcdn.be/stubru-high.mp3", site:"https://www.vrt.be/vrtmax/kanalen/stubru/"},
+{id:"srf3", n:"SRF 3", cat:"Rock", reg:"Central Europe", place:"Zurich, Switzerland", lang:"Swiss German", url:"https://stream.srg-ssr.ch/srgssr/srf3/aac/192", site:"https://www.srf.ch/radio-srf-3"},
+{id:"1live", n:"1LIVE", cat:"Rock", reg:"Central Europe", place:"Cologne, Germany", lang:"German", url:"https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3", site:"https://www1.wdr.de/radio/1live/"},
+{id:"antyradio", n:"Antyradio", cat:"Rock", reg:"Central Europe", place:"Warsaw, Poland", lang:"Polish", url:"https://n-4-2.dcs.redcdn.pl/sc/o2/Eurozet/live/antyradio.livx?audio=5", site:"https://www.antyradio.pl/"},
+{id:"radiorockno", n:"Radio Rock", cat:"Rock", reg:"Nordics", place:"Oslo, Norway", lang:"Norwegian", url:"https://live-bauerno.sharp-stream.com/radiorock_no_mp3", site:"https://radiorock.no/"},
+{id:"radio21", n:"Radio 21", cat:"Rock", reg:"Central Europe", place:"Nordrhein-Westfalen, Germany", lang:"German", url:"https://streams.radio21.de/nrw/mp3-192/web", site:"https://www.radio21.de/"},
+{id:"virginit", n:"Virgin Radio Italy", cat:"Rock", reg:"Iberia & Med", place:"Milan, Italy", lang:"Italian", url:"https://icy.unitedradio.it/Virgin.mp3", site:"https://www.virginradio.it/"},
+{id:"rcrock", n:"Rádio Comercial Rock", cat:"Rock", reg:"Iberia & Med", place:"Lisbon, Portugal", lang:"Portuguese", url:"https://stream-icy.bauermedia.pt/rcrock.aac", site:"https://radiocomercial.pt/"},
+{id:"rockandpop", n:"Rock & Pop 95.9", cat:"Rock", reg:"Beyond Europe", place:"Buenos Aires, Argentina", lang:"Spanish", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/ROCKANDPOPAAC.aac", site:"https://www.rockandpop.com.ar/"},
+{id:"89fmbr", n:"89 A Rádio Rock", cat:"Rock", reg:"Beyond Europe", place:"São Paulo, Brazil", lang:"Portuguese", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO_89FM_ADP.aac", site:"https://www.radiorock.com.br/"},
+{id:"zeppelin", n:"Zeppelin 106.7", cat:"Rock", reg:"Balkans", place:"Athens, Greece", lang:"Greek", url:"https://radiostreaming.ert.gr/ert-zeppelin", site:"https://webradio.ert.gr/zeppelin/"},
+{id:"novafr", n:"Radio Nova", cat:"Rock", reg:"France & Low Countries", place:"Paris, France", lang:"French", url:"https://novazz.ice.infomaniak.ch/novazz-128.mp3", site:"https://www.nova.fr/"},
+{id:"qmusic00s", n:"Qmusic 90's & 00's", cat:"00s & Retro", reg:"France & Low Countries", place:"Hilversum, Netherlands", lang:"Dutch", url:"https://stream.qmusic.nl/90s-00s/aaclow", site:"https://qmusic.nl/"},
+{id:"p9retro", n:"P9 Retro", cat:"00s & Retro", reg:"Nordics", place:"Oslo, Norway", lang:"Norwegian", url:"https://p9.p4groupaudio.com/P09_MH", site:"https://radio.no/"},
+{id:"nostalgievl", n:"Nostalgie Vlaanderen", cat:"00s & Retro", reg:"France & Low Countries", place:"Brussels, Belgium", lang:"Dutch", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/NOSTALGIEWHATAFEELING.mp3", site:"https://www.nostalgie.be/"},
+{id:"nostalgie80", n:"Nostalgie 80's", cat:"00s & Retro", reg:"France & Low Countries", place:"Brussels, Belgium", lang:"French", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/NOSTALGIEWAF80.mp3", site:"https://www.nostalgie.be/"},
+{id:"retrofmlv", n:"Retro FM Rīga", cat:"00s & Retro", reg:"Baltics", place:"Riga, Latvia", lang:"Russian", url:"https://live.retrofm.lv/retrofmlatvia", site:"https://retrofm.lv/"},
+{id:"rockfmballads", n:"Rock FM Ballads", cat:"00s & Retro", reg:"Balkans", place:"Bucharest, Romania", lang:"Romanian", url:"https://live.rockfm.ro/ballads.rock", site:"https://www.rockfm.ro/"},
+{id:"skyrockklas", n:"Skyrock Casablanca", cat:"00s & Retro", reg:"Beyond Europe", place:"Casablanca, Morocco", lang:"Arabic, French", url:"https://icecast.skyrock.net/s/casa_aac_64k", site:"https://www.skyrock.fm/"},
+{id:"anr", n:"ANR", cat:"Top 40", reg:"Nordics", place:"Aabenraa, Denmark", lang:"Danish", url:"https://stream.anr.dk/anr", site:"https://www.anr.dk/"},
+{id:"bay897", n:"89.7 Bay", cat:"Top 40", reg:"Iberia & Med", place:"Malta", lang:"Maltese, English", url:"https://stream.v3.network/proxy/897bay/stream.mp3", site:"https://bay.com.mt/"},
+{id:"bayeasy", n:"Bay Easy 100.2", cat:"Top 40", reg:"Iberia & Med", place:"Malta", lang:"Maltese, English", url:"https://stream.v3.network/proxy/easy/stream.mp3", site:"https://bay.com.mt/"},
+{id:"calypso", n:"Calypso Radio 101.8", cat:"Top 40", reg:"Iberia & Med", place:"Malta", lang:"Maltese", url:"https://s4.radio.co/sf3aa4c25a/listen", site:"https://calypsoradio.com.mt/"},
+{id:"riviera", n:"Riviera Radio", cat:"Top 40", reg:"Iberia & Med", place:"Monaco", lang:"English", url:"https://media-ssl.musicradio.com/RivieraRadio", site:"https://rivieraradio.mc/"},
+{id:"nrj", n:"NRJ", cat:"Top 40", reg:"France & Low Countries", place:"Paris, France", lang:"French", url:"https://streaming.nrjaudio.fm/ou5k6tirv93h", site:"https://www.nrj.fr/player"},
+{id:"skyrockhits", n:"Skyrock Hits", cat:"Top 40", reg:"France & Low Countries", place:"Paris, France", lang:"French", url:"https://icecast.skyrock.net/s/hit_skyrock_aac_64k", site:"https://www.skyrock.fm/"},
+{id:"funradiobe", n:"Fun Radio", cat:"Top 40", reg:"France & Low Countries", place:"Brussels, Belgium", lang:"French", url:"https://funradiobe.ice.infomaniak.ch/funradiobe-high.mp3", site:"https://www.funradio.be/"},
+{id:"qmusicbe", n:"Qmusic Belgium", cat:"Top 40", reg:"France & Low Countries", place:"Antwerp, Belgium", lang:"Dutch", url:"https://icecast-qmusicbe-cdp.triple-it.nl/qmusic.aac", site:"https://qmusic.be/"},
+{id:"radio538", n:"Radio 538", cat:"Top 40", reg:"France & Low Countries", place:"Amsterdam, Netherlands", lang:"Dutch", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3", site:"https://www.538.nl/luister-live"},
+{id:"qmusicnl", n:"Qmusic", cat:"Top 40", reg:"France & Low Countries", place:"Hilversum, Netherlands", lang:"Dutch", url:"https://icecast-qmusicnl-cdp.triple-it.nl/Qmusic_nl_live_96.mp3", site:"https://qmusic.nl/"},
+{id:"veronica", n:"Radio Veronica", cat:"Top 40", reg:"France & Low Countries", place:"Hilversum, Netherlands", lang:"Dutch", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/VERONICA.mp3", site:"https://www.radioveronica.nl/"},
+{id:"npo3fm", n:"NPO 3FM", cat:"Top 40", reg:"France & Low Countries", place:"Hilversum, Netherlands", lang:"Dutch", url:"https://icecast.omroep.nl/3fm-bb-mp3", site:"https://www.npo3fm.nl/"},
+{id:"zoo", n:"Zoo Radio 90.8", cat:"Top 40", reg:"Balkans", place:"Thessaloniki, Greece", lang:"Greek", url:"https://metromedia.live24.gr/zoo908thess", site:"https://www.zooradio.gr/"},
+{id:"sfera", n:"Sfera 102.2", cat:"Top 40", reg:"Balkans", place:"Athens, Greece", lang:"Greek", url:"https://sfera.live24.gr/sfera4132", site:"https://www.sfera.gr/"},
+{id:"otvoreni", n:"Otvoreni", cat:"Top 40", reg:"Balkans", place:"Zagreb, Croatia", lang:"Croatian", url:"https://stream.otvoreni.hr/otvoreni", site:"https://www.otvoreni.hr/"},
+{id:"antena", n:"Antena Sarajevo", cat:"Top 40", reg:"Balkans", place:"Sarajevo, Bosnia", lang:"Bosnian", url:"https://stream.rsgmedia.ba/listen/antena_sarajevo/radio.mp3", site:"https://radio.antena.ba/"},
+{id:"kanal77", n:"Kanal 77", cat:"Top 40", reg:"Balkans", place:"Skopje, North Macedonia", lang:"Macedonian", url:"https://radiocnd.mms.mk/proxy/offnet/stream", site:"https://www.kanal77.com.mk/"},
+{id:"topalb", n:"Top Albania Radio", cat:"Top 40", reg:"Balkans", place:"Tirana, Albania", lang:"Albanian", url:"https://live.top-media.al/tar", site:"https://www.top-channel.tv/"},
+{id:"radioshqip", n:"Radio Shqip 92.0", cat:"Top 40", reg:"Balkans", place:"Tirana, Albania", lang:"Albanian", url:"https://cp1.sednastream.com/proxy/radioshqip?mp=/stream", site:"https://radioshqip.al/"},
+{id:"radioone_al", n:"Radio One 95.2", cat:"Top 40", reg:"Balkans", place:"Tirana, Albania", lang:"Albanian", url:"https://cp1.sednastream.com/proxy/radioone94?mp=/stream", site:"https://radioone.al/"},
+{id:"eldo", n:"Eldoradio", cat:"Top 40", reg:"France & Low Countries", place:"Luxembourg City", lang:"Luxembourgish", url:"https://sc.bce.lu/eldo", site:"https://www.eldo.lu/"},
+{id:"bigfm", n:"bigFM", cat:"Top 40", reg:"Central Europe", place:"Stuttgart, Germany", lang:"German", url:"https://stream.bigfm.de/deutschland/mp3-128/radio-browser", site:"https://www.bigfm.de/webradio"},
+{id:"njoy", n:"N-JOY", cat:"Top 40", reg:"Central Europe", place:"Hamburg, Germany", lang:"German", url:"https://icecast.ndr.de/ndr/njoy/live/mp3/128/stream.mp3", site:"https://www.n-joy.de/"},
+{id:"dasding", n:"DASDING", cat:"Top 40", reg:"Central Europe", place:"Baden-Baden, Germany", lang:"German", url:"https://liveradio.swr.de/d245tgd/dasding/", site:"https://www.dasding.de/livestream"},
+{id:"ffh", n:"Hit Radio FFH", cat:"Top 40", reg:"Central Europe", place:"Bad Vilbel, Germany", lang:"German", url:"https://mp3.ffh.de/radioffh/hqlivestream.aac", site:"https://www.ffh.de/webradio"},
+{id:"evropa2", n:"Evropa 2", cat:"Top 40", reg:"Central Europe", place:"Prague, Czechia", lang:"Czech", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/EVROPA2AAC.aac", site:"https://www.evropa2.cz/"},
+{id:"rmffm", n:"RMF FM", cat:"Top 40", reg:"Central Europe", place:"Krakow, Poland", lang:"Polish", url:"https://rs202-krk-cyfronet.rmfstream.pl/rmf_fm", site:"https://www.rmf.fm/"},
+{id:"rmfmaxxx", n:"RMF MAXXX", cat:"Top 40", reg:"Central Europe", place:"Krakow, Poland", lang:"Polish", url:"https://rs9-krk2-cyfronet.rmfstream.pl/RMFMAXXX48", site:"https://www.rmfmaxxx.pl/"},
+{id:"radiozet", n:"Radio ZET", cat:"Top 40", reg:"Central Europe", place:"Warsaw, Poland", lang:"Polish", url:"https://r.dcs.redcdn.pl/sc/o2/Eurozet/live/audio.livx?audio=5", site:"https://www.radiozet.pl/"},
+{id:"radio1hu", n:"Rádió 1", cat:"Top 40", reg:"Central Europe", place:"Budapest, Hungary", lang:"Hungarian", url:"https://icast.connectmedia.hu/5201/live.mp3", site:"https://www.radio1.hu/"},
+{id:"kissfmro", n:"Kiss FM", cat:"Top 40", reg:"Balkans", place:"Bucharest, Romania", lang:"Romanian", url:"https://live.kissfm.ro/kissfm.aacp", site:"https://www.kissfm.ro/"},
+{id:"thevoicebg", n:"The Voice", cat:"Top 40", reg:"Balkans", place:"Sofia, Bulgaria", lang:"Bulgarian", url:"https://bss1.neterra.tv/thevoicefm/thevoicefm.m3u8", site:"https://thevoice.bg/", hls:true},
+{id:"starfmee", n:"Star FM", cat:"Top 40", reg:"Baltics", place:"Tallinn, Estonia", lang:"Estonian", url:"https://ice.leviracloud.eu/star96-aac", site:"https://www.starfm.ee/"},
+{id:"zipfm", n:"ZIP FM", cat:"Top 40", reg:"Baltics", place:"Vilnius, Lithuania", lang:"Lithuanian", url:"https://stream2.zipfm.lt/zipfm128.mp3", site:"https://www.zipfm.lt/"},
+{id:"radiocentras", n:"Radiocentras", cat:"Top 40", reg:"Baltics", place:"Vilnius, Lithuania", lang:"Lithuanian", url:"https://stream2.rc.lt/rc128.mp3", site:"https://www.radiocentras.lt/"},
+{id:"m1dance", n:"M-1 Dance", cat:"Top 40", reg:"Baltics", place:"Vilnius, Lithuania", lang:"Lithuanian", url:"https://radio.m-1.fm/m-1dance/aac", site:"https://www.m-1.fm/"},
+{id:"ylex", n:"YleX", cat:"Top 40", reg:"Nordics", place:"Helsinki, Finland", lang:"Finnish", url:"https://icecast.live.yle.fi/radio/YleX/icecast.audio", site:"https://yle.fi/ylex"},
+{id:"p5no", n:"P5 Nonstop Hits", cat:"Top 40", reg:"Nordics", place:"Oslo, Norway", lang:"Norwegian", url:"https://p5n.p4groupaudio.com/P05AAH", site:"https://radio.no/"},
+{id:"p12no", n:"P12 Hitmix", cat:"Top 40", reg:"Nordics", place:"Oslo, Norway", lang:"Norwegian", url:"https://nrj.p4groupaudio.com/NRJ_MM", site:"https://radio.no/"},
+{id:"p3se", n:"P3", cat:"Top 40", reg:"Nordics", place:"Stockholm, Sweden", lang:"Swedish", url:"https://live1.sr.se/p3-mp3-96", site:"https://sverigesradio.se/p3"},
+{id:"megapol", n:"Mix Megapol", cat:"Top 40", reg:"Nordics", place:"Stockholm, Sweden", lang:"Swedish", url:"https://live-bauerse-fm.sharp-stream.com/mixmegapol_instream_se_mp3", site:"https://www.mixmegapol.se/"},
+{id:"thevoicedk", n:"The Voice", cat:"Top 40", reg:"Nordics", place:"Copenhagen, Denmark", lang:"Danish", url:"https://live-bauerdk.sharp-stream.com/thevoice_dk_mp3", site:"https://thevoice.dk/"},
+{id:"novadk", n:"Nova FM", cat:"Top 40", reg:"Nordics", place:"Copenhagen, Denmark", lang:"Danish", url:"https://live-bauerdk.sharp-stream.com/nova_dk_mp3", site:"https://novafm.dk/"},
+{id:"drp3", n:"DR P3", cat:"Top 40", reg:"Nordics", place:"Copenhagen, Denmark", lang:"Danish", url:"https://drliveradio2.akamaized.net/hls/live/2118698/drlydekstra/masterab.m3u8", site:"https://www.dr.dk/lyd/p3", hls:true},
+{id:"comercial", n:"Rádio Comercial", cat:"Top 40", reg:"Iberia & Med", place:"Lisbon, Portugal", lang:"Portuguese", url:"https://stream-icy.bauermedia.pt/comercial.mp3", site:"https://radiocomercial.pt/"},
+{id:"rfmpt", n:"RFM", cat:"Top 40", reg:"Iberia & Med", place:"Lisbon, Portugal", lang:"Portuguese", url:"https://23603.live.streamtheworld.com/RFMAAC.aac", site:"https://rfm.sapo.pt/"},
+{id:"los40", n:"LOS 40", cat:"Top 40", reg:"Iberia & Med", place:"Madrid, Spain", lang:"Spanish", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/Los40.mp3", site:"https://los40.com/"},
+{id:"cadena100", n:"Cadena 100", cat:"Top 40", reg:"Iberia & Med", place:"Madrid, Spain", lang:"Spanish", url:"https://cadena100-cope.flumotion.com/chunks.m3u8", site:"https://www.cadena100.es/", hls:true},
+{id:"deejay", n:"Radio Deejay", cat:"Top 40", reg:"Iberia & Med", place:"Milan, Italy", lang:"Italian", url:"https://StreamCdnC1-4c4b867c89244861ac216426883d1ad0.msvdn.net/radiodeejay/radiodeejay/master_ma.m3u8", site:"https://www.deejay.it/dirette/radiodeejay/", hls:true},
+{id:"powerpop", n:"Power POP", cat:"Top 40", reg:"Beyond Europe", place:"Istanbul, Turkey", lang:"Turkish", url:"https://listen.powerapp.com.tr/powerpop/128/chunks.m3u8", site:"https://www.powerapp.com.tr/", hls:true},
+{id:"galgalatz", n:"Galgalatz 91.8", cat:"Top 40", reg:"Beyond Europe", place:"Tel Aviv, Israel", lang:"Hebrew", url:"https://glzicylv01.bynetcdn.com/glglz_mp3", site:"https://glz.co.il/"},
+{id:"jacaranda", n:"Jacaranda FM", cat:"Top 40", reg:"Beyond Europe", place:"Pretoria, South Africa", lang:"Afrikaans, English", url:"https://edge.iono.fm/xice/jacarandafm_live_medium.aac", site:"https://www.jacarandafm.com/"},
+{id:"kayafm", n:"Kaya 959", cat:"Top 40", reg:"Beyond Europe", place:"Johannesburg, South Africa", lang:"English", url:"https://edge.iono.fm/xice/82_medium.aac", site:"https://kaya959.co.za/"},
+{id:"ecr", n:"East Coast Radio", cat:"Top 40", reg:"Beyond Europe", place:"Durban, South Africa", lang:"English", url:"https://edge.iono.fm/xice/ecr_live_medium.aac", site:"https://www.ecr.co.za/"},
+{id:"coolfm", n:"Cool Fahrenheit 93", cat:"Top 40", reg:"Beyond Europe", place:"Bangkok, Thailand", lang:"Thai", url:"https://coolism-web.cdn.byteark.com/;stream/1", site:"https://coolism.net/"},
+{id:"la100", n:"La 100", cat:"Top 40", reg:"Beyond Europe", place:"Buenos Aires, Argentina", lang:"Spanish", url:"https://playerservices.streamtheworld.com/api/livestream-redirect/FM999_56.mp3", site:"https://la100.cienradios.com/"},
+{id:"star941", n:"Star 94.1", cat:"Top 40", reg:"Beyond Europe", place:"San Diego, USA", lang:"English", url:"https://stream.revma.ihrhls.com/zc253/hls.m3u8", site:"https://www.iheart.com/live/star-941-253/", hls:true},
+{id:"fm957", n:"FM957", cat:"Desktop only", reg:"Nordics", place:"Reykjavik, Iceland", lang:"Icelandic", url:"http://icecast.365net.is:8000/orbFm957.aac", site:"https://www.visir.is/k/fm957"},
+{id:"bylgjan", n:"Bylgjan 98.9", cat:"Desktop only", reg:"Nordics", place:"Reykjavik, Iceland", lang:"Icelandic", url:"http://icecast.365net.is:8000/orbbylgjan.aac", site:"https://bylgjan.visir.is/"},
+{id:"gullbylgjan", n:"Gull Bylgjan 90.9", cat:"Desktop only", reg:"Nordics", place:"Reykjavik, Iceland", lang:"Icelandic", url:"http://icecast.365net.is:8000/orbGullBylgjan.aac", site:"https://bylgjan.visir.is/"}];
+
+const CATS = ["Talk","Rock","00s & Retro","Top 40","Forces","Desktop only","Other"];
+const REGS = ["Britain","France & Low Countries","Central Europe","Nordics","Baltics","Balkans","Iberia & Med","Beyond Europe","Elsewhere"];
+const KEY = "receiver.v2";
+const RECENT_MAX = 8, LOG_MAX = 40, MAX_TRIES = 4, STALL_MS = 10000;
+const ICE_NP = {topalb:1, kissfmro:1, rockfmballads:1};
+
+/* ---------- station local time ---------- */
+const TZ_ID = {bfbsgurkha:"Europe/London", bfbsbeats:"Europe/London", bfbs1:"Europe/London", bfbs2:"Europe/London"};
+const TZ_PLACE = [
+  [/Northern Ireland|\bUK\b|United Kingdom|England|Scotland|Wales|London/i,"Europe/London"],
+  [/Ireland|Dublin/i,"Europe/Dublin"], [/Slovenia|Ljubljana/i,"Europe/Ljubljana"],
+  [/Belgium|Brussels|Antwerp/i,"Europe/Brussels"], [/Switzerland|Zurich|Geneva/i,"Europe/Zurich"],
+  [/Germany|Berlin|Cologne|Hamburg/i,"Europe/Berlin"], [/Austria|Vienna/i,"Europe/Vienna"],
+  [/Poland|Warsaw|Krakow/i,"Europe/Warsaw"], [/Norway|Oslo/i,"Europe/Oslo"],
+  [/Italy|Milan|Rome/i,"Europe/Rome"], [/Portugal|Lisbon|Porto/i,"Europe/Lisbon"],
+  [/Argentina|Buenos Aires/i,"America/Argentina/Buenos_Aires"], [/Brazil|São Paulo|Sao Paulo|Rio de Janeiro/i,"America/Sao_Paulo"],
+  [/Greece|Athens|Thessaloniki/i,"Europe/Athens"], [/Cyprus|Nicosia/i,"Asia/Nicosia"],
+  [/France|Paris|Marseille|Lyon/i,"Europe/Paris"], [/Netherlands|Amsterdam|Hilversum|Rotterdam/i,"Europe/Amsterdam"],
+  [/Luxembourg/i,"Europe/Luxembourg"], [/Latvia|Riga|Rīga/i,"Europe/Riga"],
+  [/Romania|Bucharest/i,"Europe/Bucharest"], [/Morocco|Casablanca|Rabat/i,"Africa/Casablanca"],
+  [/Denmark|Copenhagen|Aabenraa/i,"Europe/Copenhagen"], [/Malta|Valletta/i,"Europe/Malta"],
+  [/Monaco/i,"Europe/Monaco"], [/Croatia|Zagreb|Split/i,"Europe/Zagreb"],
+  [/Bosnia|Sarajevo/i,"Europe/Sarajevo"], [/Serbia|Belgrade|Kosovo|Pristina/i,"Europe/Belgrade"],
+  [/Montenegro|Podgorica/i,"Europe/Podgorica"], [/Macedonia|Skopje/i,"Europe/Skopje"],
+  [/Albania|Tirana/i,"Europe/Tirane"], [/Czech|Prague/i,"Europe/Prague"],
+  [/Slovakia|Bratislava/i,"Europe/Bratislava"], [/Hungary|Budapest/i,"Europe/Budapest"],
+  [/Bulgaria|Sofia/i,"Europe/Sofia"], [/Estonia|Tallinn/i,"Europe/Tallinn"],
+  [/Lithuania|Vilnius/i,"Europe/Vilnius"], [/Finland|Helsinki/i,"Europe/Helsinki"],
+  [/Sweden|Stockholm|Gothenburg/i,"Europe/Stockholm"], [/Iceland|Reykjavik/i,"Atlantic/Reykjavik"],
+  [/Spain|Madrid|Barcelona/i,"Europe/Madrid"], [/Turkey|Türkiye|Istanbul|Ankara/i,"Europe/Istanbul"],
+  [/Israel|Tel Aviv|Jerusalem/i,"Asia/Jerusalem"], [/South Africa|Johannesburg|Pretoria|Durban|Cape Town/i,"Africa/Johannesburg"],
+  [/Thailand|Bangkok/i,"Asia/Bangkok"], [/Japan|Tokyo/i,"Asia/Tokyo"],
+  [/Ukraine|Kyiv|Kiev/i,"Europe/Kyiv"], [/Russia|Moscow/i,"Europe/Moscow"],
+  [/Australia|Sydney|Melbourne/i,"Australia/Sydney"], [/Mexico/i,"America/Mexico_City"],
+  [/San Diego|Los Angeles|San Francisco|Seattle|Portland|California/i,"America/Los_Angeles"],
+  [/Chicago|Texas|Dallas|Houston/i,"America/Chicago"], [/Denver|Colorado/i,"America/Denver"],
+  [/Canada|Toronto|Montreal/i,"America/Toronto"],
+  [/New York|Washington|Boston|Philadelphia|Miami|\bUSA\b|United States/i,"America/New_York"]
+];
+function tzFor(s){
+  if(s.tz) return s.tz;
+  if(TZ_ID[s.id]) return TZ_ID[s.id];
+  for(const [re, tz] of TZ_PLACE) if(re.test(s.place || "")) return tz;
+  return null;
+}
+const fmtCache = {};
+function fmtIn(tz){
+  const k = tz || "_local";
+  if(!fmtCache[k]) fmtCache[k] = new Intl.DateTimeFormat("en-GB", tz ? {hour:"2-digit",minute:"2-digit",hour12:false,timeZone:tz} : {hour:"2-digit",minute:"2-digit",hour12:false});
+  return fmtCache[k];
+}
+function localTime(s){ const tz = tzFor(s); if(!tz) return ""; try{ return fmtIn(tz).format(new Date()); }catch(e){ return ""; } }
+function hhmm(ts){ try{ return fmtIn(null).format(new Date(ts)); }catch(e){ return ""; } }
+
+/* ---------- storage ---------- */
+const mem = {};
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return mem[k] ?? null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){ mem[k]=v; } }
+};
+function normalise(d){
+  d = d && typeof d === "object" && !Array.isArray(d) ? d : {};
+  const arr = v => Array.isArray(v) ? v : [];
+  const strs = v => arr(v).filter(x => typeof x === "string");
+  return {
+    custom: arr(d.custom).filter(s => s && typeof s === "object" && typeof s.id === "string" && typeof s.url === "string"),
+    fav: strs(d.fav), hidden: strs(d.hidden), recent: strs(d.recent).slice(0, RECENT_MAX),
+    last: typeof d.last === "string" ? d.last : null,
+    log: arr(d.log).filter(e => e && typeof e.id === "string" && typeof e.at === "number")
+           .map(e => ({id:e.id, n:String(e.n || e.id), place:String(e.place || ""), at:e.at,
+                       dur: typeof e.dur === "number" ? e.dur : 0, track: String(e.track || "")}))
+           .slice(0, LOG_MAX)
+  };
+}
+let state = normalise(null);
+try{ state = normalise(JSON.parse(store.get(KEY) || store.get("receiver.v1") || "{}")); }catch(e){}
+const save = () => store.set(KEY, JSON.stringify(state));
+
+const httpsPage = location.protocol === "https:";
+const isHttp = url => /^http:\/\//i.test(url || "");
+const blocked = s => httpsPage && isHttp(s.url);
+const builtIds = new Set(BUILT.map(s => s.id));
+/* On https, built-in http streams can never play, so they're left out. */
+const library = () => BUILT.filter(s => !state.hidden.includes(s.id) && !blocked(s)).concat(state.custom);
+const byId = id => library().find(s => s.id === id);
+
+const $ = s => document.querySelector(s);
+const listEl = $("#list"), countEl = $("#count"), npEl = $("#np");
+const pFreq = $("#pFreq"), pName = $("#pName"), lamp = $("#lamp"), statusEl = $("#status"),
+      stopBtn = $("#stop"), sleepBtn = $("#sleepBtn"), player = $("#player"), dock = $("#dock");
+const ICON_STOP = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" fill="currentColor"/></svg>';
+const ICON_PLAY = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>';
+
+function addSlats(el, n){ for(let i=0;i<n;i++){ const d=document.createElement("div"); d.className="slat"; el.appendChild(d); } }
+addSlats($("#grille"), 22);
+const slats = [...document.querySelectorAll(".slat")];
+
+/* ---------- playback ----------
+   phase: off | tuning | live | buffering | retry | paused | nosig
+   Every connection attempt gets a generation number; anything tagged with
+   an older generation (a rejected play(), a timer, an hls.js error) is
+   ignored, so one drop is counted once. */
+const audio = new Audio();
+audio.preload = "none";
+try{ audio.setAttribute("x-webkit-airplay", "allow"); if(audio instanceof Node){ audio.hidden = true; document.body.appendChild(audio); } }catch(e){}
+const nativeHls = audio.canPlayType("application/vnd.apple.mpegurl") !== "";
+let current = null, phase = "off", tries = 0, gen = 0, retryTimer = null, hls = null, everLive = false;
+let animTimer = null, tickTimer = null, progT = 0, progAt = 0, sleepAt = 0, sleepIdx = 0, statusNote = "", lastFailed = null;
+let logLive = null;
+
+function animate(on){
+  document.body.classList.toggle("playing", on);
+  if(on === !!animTimer) return;
+  clearInterval(animTimer); animTimer = null;
+  if(!on){ slats.forEach(s => s.style.height = "26%"); return; }
+  animTimer = setInterval(() => {
+    if(document.hidden) return;
+    const t = Date.now()/380;
+    slats.forEach((s,i) => {
+      const base = 34 + 30*Math.sin(t + i*0.7);
+      s.style.height = Math.max(18, Math.min(96, base + Math.random()*26)) + "%";
+    });
+  }, 190);
+}
+
+const FREQ = {off:"OFF", tuning:"TUNING", live:"ON AIR", buffering:"BUFFER", retry:"RETRY", paused:"PAUSED", nosig:"NO SIG"};
+const LAMP = {live:"on", tuning:"warm", buffering:"warm", retry:"warm"};
+const resumable = () => {
+  if(phase === "paused" && current) return current;
+  if(phase === "off" || phase === "nosig"){ const s = state.last && byId(state.last); return s && !blocked(s) ? s : null; }
+  return null;
+};
+const playingNow = () => !!current && phase !== "paused";
+function liveLine(s){
+  const t = localTime(s);
+  return (t ? `<b>${t}</b> · ` : "") + esc(s.place) + " · " + esc(s.lang);
+}
+function statusHtml(){
+  const s = current;
+  if(statusNote) return esc(statusNote);
+  if(phase === "live") return liveLine(s);
+  if(phase === "tuning") return "Connecting to " + esc(s.n) + "…";
+  if(phase === "buffering") return "Buffering…";
+  if(phase === "retry") return "Signal lost. Retry " + tries + " of " + MAX_TRIES + "…";
+  if(phase === "paused") return "Paused.";
+  if(phase === "nosig") return "Couldn't hold " + esc(lastFailed ? lastFailed.n : "the station") + ". Try the listen page.";
+  const r = resumable(); return r ? "Last: " + esc(r.n) : "Pick a station.";
+}
+function paint(){
+  const s = current, r = resumable();
+  const shown = s || (phase === "nosig" && lastFailed) || r;
+  pFreq.textContent = FREQ[phase];
+  pName.textContent = shown ? shown.n : "standby";
+  const lampCls = "lamp" + (LAMP[phase] ? " " + LAMP[phase] : "");
+  lamp.className = lampCls; $("#miniLamp").className = lampCls;
+  const html = statusHtml();
+  statusEl.innerHTML = html;
+
+  /* dock */
+  const showDock = !!(shown || statusNote);
+  dock.hidden = !showDock; document.body.classList.toggle("has-dock", showDock);
+  $("#miniName").textContent = shown ? shown.n : "Receiver";
+  $("#miniSub").textContent = (phase === "live" && npTrack && !statusNote) ? npTrack.artist + " — " + npTrack.title
+    : (phase === "live" && !statusNote ? s.place + " · " + s.lang : statusEl.textContent);
+  const playing = playingNow();
+  const tog = $("#miniToggle");
+  if(tog.dataset.mode !== String(playing)){
+    tog.dataset.mode = String(playing); stopBtn.dataset.mode = String(playing);
+    tog.innerHTML = stopBtn.innerHTML = playing ? ICON_STOP : ICON_PLAY;
+  }
+  tog.setAttribute("aria-label", playing ? "Stop" : "Play"); stopBtn.setAttribute("aria-label", playing ? "Stop" : "Play");
+  tog.disabled = stopBtn.disabled = !playing && !r;
+
+  /* player */
+  const sl0 = stepList(), si = shown ? sl0.findIndex(x => x.id === shown.id) : -1;
+  const kind = state.fav.some(id => sl0.some(x => x.id === id)) && sl0.every(x => state.fav.includes(x.id)) ? "SAVED" : "LIST";
+  $("#pCyc").textContent = si >= 0 ? kind + " · " + (si + 1) + " OF " + sl0.length : sl0.length + " IN " + kind;
+  const keepId = shown && shown.id;
+  const kept = !!keepId && state.fav.includes(keepId);
+  const kb = $("#keepBtn"); kb.disabled = !keepId; kb.setAttribute("aria-pressed", kept); kb.textContent = kept ? "★ Kept" : "★ Keep";
+  $("#backBtn").disabled = $("#nextBtn").disabled = $("#miniNext").disabled = !sl0.length;
+  const site = shown && /^https?:\/\//i.test(shown.site || "") ? shown.site : "";
+  const sl = $("#siteLink"); sl.hidden = !site; if(site) sl.href = site;
+  sleepBtn.hidden = !s || phase === "paused";
+  sleepBtn.textContent = sleepAt ? "Sleep " + Math.max(1, Math.ceil((sleepAt - Date.now())/60000)) + "m" : "Sleep";
+  sleepBtn.classList.toggle("lit", !!sleepAt);
+
+  animate(phase === "live");
+  if("mediaSession" in navigator){
+    try{ navigator.mediaSession.playbackState =
+      (phase === "live" || phase === "buffering" || phase === "tuning" || phase === "retry") ? "playing"
+      : (phase === "paused" ? "paused" : "none"); }catch(e){}
+  }
+}
+function setPhase(p, note){ phase = p; statusNote = note || ""; paint(); }
+
+function remember(s){
+  state.last = s.id;
+  state.recent = [s.id].concat(state.recent.filter(x => x !== s.id)).slice(0, RECENT_MAX);
+  save();
+}
+function teardown(){
+  try{ audio.pause(); audio.removeAttribute("src"); audio.load(); }catch(e){}
+  if(hls){ try{ hls.destroy(); }catch(e){} hls = null; }
+}
+function halt(){
+  gen++; clearTimeout(retryTimer); retryTimer = null;
+  teardown(); npStop(); closeLog();
+}
+function start(s, opts){
+  opts = opts || {};
+  halt();
+  current = s; tries = 0; everLive = false; lastFailed = null;
+  remember(s); startTick();
+  setPhase("tuning", opts.note); setMeta(); render();
+  connect();
+}
+function tune(s){
+  if(blocked(s)){ statusNote = s.n + " streams over plain http, which iPhone won't play here. Open the listen page instead."; paint(); return; }
+  if(current && current.id === s.id && phase !== "paused"){ stop(); return; }
+  start(s);
+}
+function connect(){
+  const s = current; if(!s) return;
+  const my = ++gen;
+  clearTimeout(retryTimer); retryTimer = null;
+  teardown();
+  if(s.hls && !nativeHls){
+    loadHls().then(() => {
+      if(my !== gen) return;
+      hls = new Hls();
+      hls.on(Hls.Events.ERROR, (e, d) => { if(d && d.fatal) fail(my); });
+      hls.loadSource(s.url); hls.attachMedia(audio);
+      play(my);
+    }).catch(() => fail(my));
+    return;
+  }
+  try{ audio.src = s.url; }catch(e){ fail(my); return; }
+  play(my);
+}
+function play(my){
+  let p;
+  try{ p = audio.play(); }catch(e){ fail(my); return; }
+  if(p && p.catch) p.catch(err => {
+    if(my !== gen) return;
+    const name = err && err.name;
+    if(name === "AbortError") return;           /* we replaced the source ourselves */
+    if(name === "NotAllowedError"){             /* iOS wants a fresh tap; retrying won't help */
+      halt(); setPhase("paused", "Tap play to keep listening."); return;
+    }
+    fail(my);
+  });
+}
+function loadHls(){
+  if(window.Hls) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const sc = document.createElement("script");
+    sc.src = "https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js";
+    sc.onload = res; sc.onerror = rej; document.head.appendChild(sc);
+  });
+}
+function onLive(){
+  if(!current) return;
+  const first = phase !== "live" && phase !== "buffering";
+  tries = 0; progT = audio.currentTime || 0; progAt = Date.now();
+  if(!everLive){ everLive = true; addLog(current); }
+  setPhase("live");
+  if(first){ setMeta(); npStart(); render(); }
+}
+function fail(my){
+  if(my !== gen || !current || retryTimer) return;
+  if(phase === "paused" || phase === "off") return;
+  tries++;
+  npStop(); setMeta();
+  if(tries <= MAX_TRIES){
+    setPhase("retry");
+    retryTimer = setTimeout(() => { retryTimer = null; connect(); }, 900 * tries);
+    return;
+  }
+  lastFailed = current;
+  halt(); current = null; stopTick();
+  setPhase("nosig"); render();
+}
+function pauseSoft(){
+  if(!current) return;
+  halt();
+  setPhase("paused"); setMeta();
+}
+function resume(){
+  const s = resumable();
+  if(s) start(s);
+}
+function stop(note){
+  halt();
+  current = null; sleepAt = 0; sleepIdx = 0; stopTick();
+  setPhase("off", note); render();
+}
+function toggle(){ if(playingNow()) stop(); else resume(); }
+
+audio.addEventListener("playing", () => { if(current && phase !== "paused" && phase !== "off") onLive(); });
+audio.addEventListener("error", () => {
+  /* A reset via load() clears audio.error, so a stale event from a source
+     we've already discarded arrives with no error attached and is ignored. */
+  if(!audio.error || !current) return;
+  if(hls) return;                                   /* hls.js reports its own errors */
+  fail(gen);
+});
+audio.addEventListener("ended", () => { if(current && (phase === "live" || phase === "buffering")) fail(gen); });
+audio.addEventListener("waiting", () => { if(phase === "live") setPhase("buffering"); });
+audio.addEventListener("pause", () => {
+  /* Pauses we didn't ask for: a phone call, Siri, another app taking audio. */
+  if(current && (phase === "live" || phase === "buffering") && !audio.ended && !audio.error){ pauseSoft(); }
+});
+audio.addEventListener("timeupdate", () => {
+  const t = audio.currentTime || 0;
+  if(t > progT){ progT = t; progAt = Date.now(); if(phase === "buffering") setPhase("live"); }
+  checkSleep();
+});
+window.addEventListener("online", () => {
+  if(!current) return;
+  if(phase === "retry"){ clearTimeout(retryTimer); retryTimer = null; connect(); }
+  else if((phase === "live" || phase === "buffering") && Date.now() - progAt > 3000) fail(gen);
+});
+document.addEventListener("visibilitychange", () => { if(!document.hidden){ checkSleep(); if(current) paint(); } });
+
+/* One light timer while a station is up: stall watchdog, clock, sleep. */
+let lastMinute = -1;
+function startTick(){
+  if(tickTimer) return;
+  tickTimer = setInterval(() => {
+    if((phase === "live" || phase === "buffering") && !audio.paused && Date.now() - progAt > STALL_MS){
+      fail(gen);
+    }
+    checkSleep();
+    const m = new Date().getMinutes();
+    if(m !== lastMinute){ lastMinute = m; if(current) paint(); }
+  }, 2000);
+}
+function stopTick(){ clearInterval(tickTimer); tickTimer = null; }
+
+/* ---------- next / previous ----------
+   Saved stations by name when you have any; otherwise the list on screen,
+   in the order it's shown (so a filter or search narrows what Next visits). */
+function stepList(){
+  const lib = library().filter(s => !blocked(s));
+  const favs = lib.filter(s => state.fav.includes(s.id)).sort((a,b) => a.n.localeCompare(b.n));
+  return favs.length ? favs : visibleRows().filter(s => !blocked(s));
+}
+function step(d){
+  const list = stepList(); if(!list.length) return;
+  const ref = current ? current.id : (lastFailed ? lastFailed.id : state.last);
+  let i = list.findIndex(s => s.id === ref);
+  i = i < 0 ? (d > 0 ? 0 : list.length - 1) : (i + d + list.length) % list.length;
+  start(list[i]);
+}
+function keep(){
+  const s = current || resumable() || lastFailed; if(!s) return;
+  state.fav = state.fav.includes(s.id) ? state.fav.filter(x => x !== s.id) : state.fav.concat(s.id);
+  save(); render(); paint();
+}
+
+/* ---------- logbook ---------- */
+function addLog(s){
+  logLive = {id:s.id, n:s.n, place:s.place || "", at:Date.now(), dur:0, track:""};
+  state.log.unshift(logLive); state.log = state.log.slice(0, LOG_MAX); save();
+}
+function closeLog(){
+  if(!logLive) return;
+  logLive.dur = Math.round((Date.now() - logLive.at) / 1000);
+  logLive = null; save();
+}
+/* Recent: the logbook, newest first, one row per station. */
+function recentEntries(){
+  const seen = new Set(), out = [];
+  for(const e of state.log) if(!seen.has(e.id)){ seen.add(e.id); out.push(e); }
+  for(const id of state.recent) if(!seen.has(id)){ seen.add(id); out.push({id, at:0, track:""}); }
+  return out;
+}
+
+/* ---------- sleep timer ---------- */
+const SLEEP_STEPS = [0, 15, 30, 60];
+function checkSleep(){
+  if(sleepAt && Date.now() >= sleepAt){ stop("Sleep timer turned the radio off."); }
+}
+sleepBtn.onclick = () => {
+  sleepIdx = (sleepIdx + 1) % SLEEP_STEPS.length;
+  sleepAt = SLEEP_STEPS[sleepIdx] ? Date.now() + SLEEP_STEPS[sleepIdx]*60000 : 0;
+  paint();
+};
+
+/* ---------- lock screen, AirPods, car ---------- */
+let npTrack = null;
+function setMeta(){
+  if(!("mediaSession" in navigator) || !current || typeof MediaMetadata === "undefined") return;
+  const s = current;
+  try{
+    navigator.mediaSession.metadata = npTrack
+      ? new MediaMetadata({title:npTrack.title, artist:npTrack.artist + " · " + s.n, album:"Receiver"})
+      : new MediaMetadata({title:s.n, artist:s.place, album:"Receiver"});
+  }catch(e){}
+}
+if("mediaSession" in navigator){
+  const set = (a, fn) => { try{ navigator.mediaSession.setActionHandler(a, fn); }catch(e){} };
+  set("play", () => { if(playingNow()) return; resume(); });
+  set("pause", () => pauseSoft());
+  set("stop", () => stop());
+  set("nexttrack", () => step(1));
+  set("previoustrack", () => step(-1));
+  set("seekbackward", null); set("seekforward", null); set("seekto", null);
+}
+
+/* ---------- player sheet ---------- */
+function openPlayer(){
+  player.inert = false; player.removeAttribute("inert"); player.setAttribute("aria-hidden", "false");
+  player.classList.add("open"); document.documentElement.classList.add("lock");
+}
+function closePlayer(){
+  player.classList.remove("open"); player.setAttribute("aria-hidden", "true");
+  player.inert = true; player.setAttribute("inert", "");
+  document.documentElement.classList.remove("lock");
+}
+const isOpen = () => player.classList.contains("open");
+$("#miniOpen").onclick = openPlayer;
+$("#closePlayer").onclick = closePlayer;
+$("#miniToggle").onclick = toggle;
+stopBtn.onclick = toggle;
+$("#miniNext").onclick = () => step(1);
+$("#nextBtn").onclick = () => step(1);
+$("#backBtn").onclick = () => step(-1);
+$("#keepBtn").onclick = keep;
+document.addEventListener("keydown", e => { if(e.key === "Escape" && isOpen() && !document.querySelector("dialog[open]")) closePlayer(); });
+(() => {
+  let x0 = 0, y0 = 0, t0 = 0;
+  const port = $("#porthole");
+  port.addEventListener("touchstart", e => { const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; t0 = Date.now(); }, {passive:true});
+  port.addEventListener("touchend", e => {
+    const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    if(Date.now() - t0 < 800 && Math.abs(dx) > 50 && Math.abs(dx) > 1.5 * Math.abs(dy)){ step(dx < 0 ? 1 : -1); }
+  }, {passive:true});
+  let sy = 0, sx = 0, fromTop = false;
+  player.addEventListener("touchstart", e => { const t = e.touches[0]; sy = t.clientY; sx = t.clientX; fromTop = player.scrollTop <= 0 && !e.target.closest("#porthole"); }, {passive:true});
+  player.addEventListener("touchend", e => {
+    const t = e.changedTouches[0], dy = t.clientY - sy, dx = t.clientX - sx;
+    if(fromTop && dy > 90 && dy > 1.5 * Math.abs(dx)) closePlayer();
+  }, {passive:true});
+})();
+(() => {
+  const air = $("#airBtn");
+  if(window.WebKitPlaybackTargetAvailabilityEvent && audio.addEventListener){
+    audio.addEventListener("webkitplaybacktargetavailabilitychanged", e => {
+      const on = e.availability === "available"; air.hidden = !on; $("#airGap").hidden = on;
+    });
+  }
+  air.onclick = () => { try{ audio.webkitShowPlaybackTargetPicker(); }catch(e){} };
+})();
+
+/* ---------- now playing ---------- */
+let npTimer = null, npGen = 0, npFails = 0;
+function npSource(s){
+  const m = s.url.match(/streamtheworld\.com\/(?:api\/livestream-redirect\/)?([A-Za-z0-9_]+)\.(?:aac|mp3)/i);
+  if(m) return {kind:"triton", mount:m[1].toUpperCase(), every:25000};
+  if(ICE_NP[s.id]) return {kind:"ice", every:45000};
+  return null;
+}
+function npStop(){ npGen++; clearTimeout(npTimer); npTimer = null; npTrack = null; npEl.hidden = true; npEl.textContent = ""; }
+function npStart(){
+  npStop();
+  const s = current; const src = s && npSource(s); if(!src) return;
+  const my = npGen; npFails = 0;
+  const run = async () => {
+    if(my !== npGen) return;
+    let t = null, ok = true;
+    try{ t = src.kind === "triton" ? await triton(src.mount) : await icecast(s); }
+    catch(e){ ok = false; }
+    if(my !== npGen) return;
+    npFails = ok ? 0 : npFails + 1;
+    showTrack(t);
+    if(npFails < 3) npTimer = setTimeout(run, src.every);
+  };
+  run();
+}
+function showTrack(t){
+  const same = (npTrack && t) ? (npTrack.artist === t.artist && npTrack.title === t.title) : npTrack === t;
+  npTrack = t;
+  npEl.hidden = !t; npEl.textContent = t ? t.artist + " — " + t.title : "";
+  if(!same){
+    setMeta(); paint();
+    if(t && logLive){ logLive.track = t.artist + " — " + t.title; save(); if(fCat === "Recent") render(); }
+  }
+}
+function fetchT(url, ms){
+  const ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = setTimeout(() => ctl && ctl.abort(), ms || 7000);
+  return fetch(url, {cache:"no-store", signal: ctl ? ctl.signal : undefined})
+    .then(r => { if(!r.ok) throw new Error("http " + r.status); return r; })
+    .finally(() => clearTimeout(timer));
+}
+/* Triton: artist and title, but only while the cue is still current —
+   the feed sometimes lingers on a track that ended long ago. */
+async function triton(mount){
+  const r = await fetchT("https://np.tritondigital.com/public/nowplaying?mountName=" + encodeURIComponent(mount) + "&numberToFetch=1&eventType=track");
+  return parseTriton(await r.text(), Date.now());
+}
+function parseTriton(xml, now){
+  const doc = new DOMParser().parseFromString(xml, "text/xml");
+  const info = doc.querySelector("nowplaying-info"); if(!info) return null;
+  const prop = n => { const el = info.querySelector('property[name="' + n + '"]'); return el ? el.textContent.trim() : ""; };
+  const title = prop("cue_title"), artist = prop("track_artist_name");
+  if(!title || !artist) return null;
+  const startMs = parseInt(prop("cue_time_start"), 10) || (parseInt(info.getAttribute("timestamp"), 10) * 1000) || 0;
+  const dur = parseInt(prop("cue_time_duration"), 10) || 0;
+  if(startMs){
+    const fresh = dur > 0 ? now < startMs + dur + 90000 : now - startMs < 10*60000;
+    if(!fresh) return null;
+  }
+  return {artist, title};
+}
+const NP_JUNK = /\bID[_ ]?\d|jingl|\bjing\b|publicitate|reclam|advert|commercial|\[[^\]]*\]/i;
+const squash = t => String(t || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+async function icecast(s){
+  const u = new URL(s.url);
+  const r = await fetchT(u.origin + "/status-json.xsl", 9000);
+  const d = await r.json();
+  let srcs = d && d.icestats && d.icestats.source; if(!srcs) return null;
+  if(!Array.isArray(srcs)) srcs = [srcs];
+  const hit = srcs.find(x => { try{ return new URL(x.listenurl).pathname === u.pathname; }catch(e){ return false; } });
+  return hit ? parseIceTitle(hit.title || "", s.n) : null;
+}
+function parseIceTitle(raw, stationName){
+  let parts = String(raw).split(" - ").map(x => x.trim()).filter(Boolean);
+  if(parts.length >= 3 && squash(stationName).startsWith(squash(parts[0]))) parts = parts.slice(1);
+  if(parts.length < 2) return null;
+  const artist = parts[0], title = parts.slice(1).join(" - ");
+  if(NP_JUNK.test(raw)) return null;
+  if(squash(artist + title).includes(squash(stationName)) || (squash(artist).length >= 4 && squash(stationName).includes(squash(artist)))) return null;
+  return {artist, title};
+}
+
+/* ---------- station list ---------- */
+let fCat = "All", fReg = "All", query = "", manage = false;
+
+function chipRow(el, items, active){
+  el.innerHTML = items.map(c => `<button class="chip" data-v="${esc(c)}" aria-pressed="${c===active}">${esc(c)}</button>`).join("");
+}
+function matches(s){
+  if(fCat === "Saved"){ if(!state.fav.includes(s.id)) return false; }
+  else if(fCat === "Recent"){ if(!recentIds().has(s.id)) return false; }
+  else if(fCat !== "All" && s.cat !== fCat) return false;
+  if(fReg !== "All" && s.reg !== fReg) return false;
+  if(query){
+    const q = query.toLowerCase();
+    if(!(s.n+" "+s.place+" "+s.lang+" "+s.cat+" "+s.reg).toLowerCase().includes(q)) return false;
+  }
+  return true;
+}
+const recentIds = () => new Set(recentEntries().map(e => e.id));
+function visibleRows(){
+  if(fCat === "Recent"){
+    const order = recentEntries().map(e => e.id);
+    return library().filter(matches).sort((a,b) => order.indexOf(a.id) - order.indexOf(b.id));
+  }
+  return library().filter(matches).sort((a,b) => {
+    const fa = state.fav.includes(a.id), fb = state.fav.includes(b.id);
+    if(fa !== fb) return fa ? -1 : 1;
+    return a.n.localeCompare(b.n);
+  });
+}
+function render(){
+  const lib = library();
+  const cats = CATS.filter(c => lib.some(s => s.cat === c));
+  const hasRecent = recentEntries().some(e => lib.some(s => s.id === e.id));
+  const catItems = ["All", ...cats, ...(state.fav.length ? ["Saved"] : []), ...(hasRecent ? ["Recent"] : [])];
+  if(!catItems.includes(fCat)) fCat = "All";
+  const regs = REGS.filter(r => lib.some(s => s.reg === r));
+  if(fReg !== "All" && !regs.includes(fReg)) fReg = "All";
+  chipRow($("#chipsFormat"), catItems, fCat);
+  chipRow($("#chipsRegion"), ["All", ...regs], fReg);
+
+  const hiddenCount = hiddenBuiltIns().length;
+  const rb = $("#restoreBtn"); rb.hidden = !hiddenCount; rb.textContent = "Hidden (" + hiddenCount + ")";
+
+  const rows = visibleRows();
+  const recentBy = fCat === "Recent" ? Object.fromEntries(recentEntries().map(e => [e.id, e])) : null;
+  countEl.textContent = rows.length + (rows.length === 1 ? " station" : " stations");
+  if(!rows.length){
+    listEl.innerHTML = `<div class="empty">Nothing matches. Clear a filter, or add a station of your own.</div>`;
+  } else listEl.innerHTML = rows.map(s => {
+    const live = current && current.id === s.id;
+    const tags = [];
+    if(s.hls) tags.push(`<span class="tag">HLS</span>`);
+    if(s.over) tags.push(`<span class="tag">EDITED</span>`);
+    else if(s.custom) tags.push(`<span class="tag">MINE</span>`);
+    if(blocked(s)) tags.push(`<span class="tag">HTTP</span>`);
+    const fav = state.fav.includes(s.id);
+    const site = blocked(s) && /^https?:\/\//i.test(s.site || "") ? s.site : "";
+    const showEdit = manage || (s.custom && !s.over);
+    const e = recentBy && recentBy[s.id];
+    const sub = e && e.at ? hhmm(e.at) + " · " + (e.track ? esc(e.track) : esc(s.place) + " · " + esc(s.lang))
+      : esc(s.place) + " · " + esc(s.lang);
+    return `<div class="st ${live?"live":""}">
+      <div class="st-body" data-play="${esc(s.id)}" role="button" tabindex="0">
+        <div class="st-name">${esc(s.n)} ${tags.join(" ")}</div>
+        <div class="st-sub">${sub}</div>
+      </div>
+      <div class="st-act">
+        ${site ? `<a class="out" href="${esc(site)}" target="_blank" rel="noopener">Listen page</a>` : ""}
+        ${showEdit ? `<button class="out" data-edit="${esc(s.id)}">Edit</button>` : ""}
+        <button class="fav ${fav?"on":""}" data-fav="${esc(s.id)}" aria-label="Keep ${esc(s.n)}" aria-pressed="${fav}">★</button>
+      </div></div>`;
+  }).join("");
+}
+function esc(t){ return String(t==null?"":t).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+$("#chipsFormat").onclick = e => { const b=e.target.closest(".chip"); if(b){ fCat=b.dataset.v; render(); } };
+$("#chipsRegion").onclick = e => { const b=e.target.closest(".chip"); if(b){ fReg=b.dataset.v; render(); } };
+$("#search").oninput = e => { query = e.target.value.trim(); render(); };
+$("#search").onkeydown = e => { if(e.key === "Enter") e.target.blur(); };
+
+listEl.addEventListener("click", e => {
+  const fav = e.target.closest("[data-fav]");
+  if(fav){
+    const id = fav.dataset.fav;
+    state.fav = state.fav.includes(id) ? state.fav.filter(x => x !== id) : state.fav.concat(id);
+    save(); render(); paint(); return;
+  }
+  const ed = e.target.closest("[data-edit]");
+  if(ed){ openSheet(byId(ed.dataset.edit)); return; }
+  const pl = e.target.closest("[data-play]");
+  if(pl){ const s = byId(pl.dataset.play); if(s) tune(s); }
+});
+listEl.addEventListener("keydown", e => {
+  const pl = e.target.closest("[data-play]");
+  if(pl && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); pl.click(); }
+});
+$("#manageBtn").onclick = e => { manage = !manage; e.currentTarget.setAttribute("aria-pressed", manage); render(); };
+
+/* ---------- add / edit ---------- */
+const sheet = $("#sheet");
+$("#fCat").innerHTML = CATS.filter(c => c !== "Desktop only").map(c => `<option>${c}</option>`).join("");
+$("#fReg").innerHTML = REGS.map(c => `<option>${c}</option>`).join("");
+let editing = null, picked = null;
+
+function openSheet(s){
+  editing = s || null; picked = null;
+  const isBuilt = s && builtIds.has(s.id) && !s.over;
+  $("#shTitle").textContent = s ? "Edit station" : "Add a station";
+  $("#shHelp").textContent = s
+    ? (isBuilt || (s && s.over) ? "Changes here are kept on this phone. You can revert to the original at any time." : "Paste a direct stream URL — an Icecast or Shoutcast mount, or an .m3u8.")
+    : "Search for it, or paste a direct stream URL — an Icecast or Shoutcast mount, or an .m3u8. A homepage link won't play.";
+  $("#finder").hidden = !!s;
+  $("#fFind").value = ""; $("#fResults").innerHTML = "";
+  $("#fName").value = s ? s.n : "";
+  $("#fUrl").value = s ? s.url : "";
+  $("#fSite").value = s && s.site ? s.site : "";
+  $("#fPlace").value = s ? s.place : "";
+  $("#fLang").value = s && s.lang && s.lang !== "—" ? s.lang : "";
+  $("#fCat").value = s && s.cat !== "Desktop only" ? s.cat : "Other";
+  $("#fReg").value = s ? s.reg : "Elsewhere";
+  $("#fMsg").textContent = "";
+  $("#delRow").hidden = !s;
+  $("#fRevert").hidden = !(s && s.over);
+  $("#fDelete").textContent = s && (isBuilt || s.over) ? "Hide this station" : "Remove this station";
+  sheet.showModal();
+}
+$("#addBtn").onclick = () => openSheet(null);
+$("#fCancel").onclick = () => sheet.close();
+$("#fSave").onclick = () => {
+  const n = $("#fName").value.trim(), url = $("#fUrl").value.trim();
+  if(!n){ $("#fMsg").textContent = "Give it a name."; return; }
+  if(!/^https?:\/\//i.test(url)){ $("#fMsg").textContent = "The stream URL needs to start with http:// or https://"; return; }
+  if(httpsPage && isHttp(url)){ $("#fMsg").textContent = "That stream is http-only, which iPhone won't play on this page. Look for an https version."; return; }
+  const isBuilt = editing && builtIds.has(editing.id);
+  const rec = {
+    id: editing ? editing.id : "u" + Date.now().toString(36),
+    n, url, site: $("#fSite").value.trim(),
+    place: $("#fPlace").value.trim() || "Added by you",
+    lang: $("#fLang").value.trim() || "—",
+    cat: $("#fCat").value, reg: $("#fReg").value,
+    hls: /\.m3u8(\?|$)/i.test(url) || !!(picked && picked.url === url && picked.hls),
+    custom: true
+  };
+  if(isBuilt){ rec.over = true; if(!state.hidden.includes(rec.id)) state.hidden = state.hidden.concat(rec.id); }
+  state.custom = editing && state.custom.some(s => s.id === rec.id)
+    ? state.custom.map(s => s.id === rec.id ? rec : s) : state.custom.concat(rec);
+  if(current && current.id === rec.id) current = rec;
+  save(); render(); paint(); sheet.close();
+};
+$("#fDelete").onclick = () => {
+  if(!editing) return;
+  const id = editing.id;
+  state.custom = state.custom.filter(s => s.id !== id);
+  if(builtIds.has(id) && !state.hidden.includes(id)) state.hidden = state.hidden.concat(id);
+  state.fav = state.fav.filter(x => x !== id);
+  state.recent = state.recent.filter(x => x !== id);
+  if(state.last === id) state.last = null;
+  if(current && current.id === id) stop();
+  save(); render(); paint(); sheet.close();
+};
+$("#fRevert").onclick = () => {
+  if(!editing) return;
+  const id = editing.id;
+  state.custom = state.custom.filter(s => s.id !== id);
+  state.hidden = state.hidden.filter(x => x !== id);
+  if(current && current.id === id) current = byId(id) || current;
+  save(); render(); paint(); sheet.close();
+};
+
+/* Radio Browser lookup: open API, CORS-enabled. Only runs while the add sheet is open. */
+const RB = ["https://de1.api.radio-browser.info", "https://all.api.radio-browser.info"];
+const CC_REG = {GB:"Britain", FR:"France & Low Countries", BE:"France & Low Countries", NL:"France & Low Countries", LU:"France & Low Countries",
+  DE:"Central Europe", AT:"Central Europe", CH:"Central Europe", PL:"Central Europe", CZ:"Central Europe", SK:"Central Europe", HU:"Central Europe", LI:"Central Europe",
+  NO:"Nordics", SE:"Nordics", DK:"Nordics", FI:"Nordics", IS:"Nordics", FO:"Nordics",
+  EE:"Baltics", LV:"Baltics", LT:"Baltics",
+  SI:"Balkans", HR:"Balkans", BA:"Balkans", RS:"Balkans", ME:"Balkans", MK:"Balkans", AL:"Balkans", XK:"Balkans", GR:"Balkans", BG:"Balkans", RO:"Balkans", MD:"Balkans",
+  ES:"Iberia & Med", PT:"Iberia & Med", IT:"Iberia & Med", MT:"Iberia & Med", MC:"Iberia & Med", AD:"Iberia & Med", SM:"Iberia & Med", CY:"Iberia & Med", GI:"Iberia & Med", VA:"Iberia & Med"};
+const EUROPE_OTHER = new Set(["IE","UA","BY","RU","TR"]);
+function guessReg(cc){ cc = (cc || "").toUpperCase(); return CC_REG[cc] || (EUROPE_OTHER.has(cc) ? "Elsewhere" : cc ? "Beyond Europe" : "Elsewhere"); }
+function guessCat(tags){
+  const t = (tags || "").toLowerCase();
+  if(/\b(news|talk|information|public radio|spoken)\b/.test(t)) return "Talk";
+  if(/\b(70s|80s|90s|00s|oldies|retro|classic hits|nostalgia)\b/.test(t)) return "00s & Retro";
+  if(/\brock\b/.test(t)) return "Rock";
+  if(/\b(pop|top ?40|hits|dance|chart|edm)\b/.test(t)) return "Top 40";
+  return "Other";
+}
+const cap = s => s.replace(/(^|,\s*)([a-zà-ž])/g, (m, a, b) => a + b.toUpperCase());
+let findSeq = 0, findTimer = null, findHits = [];
+async function rbSearch(q){
+  const path = "/json/stations/search?name=" + encodeURIComponent(q) + "&hidebroken=true&order=clickcount&reverse=true&limit=15";
+  let lastErr;
+  for(const base of RB){
+    try{ const r = await fetchT(base + path, 8000); return await r.json(); }catch(e){ lastErr = e; }
+  }
+  throw lastErr;
+}
+$("#fFind").oninput = e => {
+  const q = e.target.value.trim(); const my = ++findSeq;
+  clearTimeout(findTimer);
+  if(q.length < 2){ $("#fResults").innerHTML = ""; return; }
+  findTimer = setTimeout(async () => {
+    $("#fResults").innerHTML = `<div class="res-note">Searching…</div>`;
+    try{
+      const data = await rbSearch(q);
+      if(my !== findSeq) return;
+      const seen = new Set();
+      findHits = (Array.isArray(data) ? data : []).filter(s => {
+        const u = s.url_resolved || s.url; if(!u || seen.has(u)) return false; seen.add(u); return true;
+      }).sort((a,b) => isHttp(a.url_resolved || a.url) - isHttp(b.url_resolved || b.url)).slice(0, 8);
+      $("#fResults").innerHTML = findHits.length ? findHits.map((s, i) => {
+        const u = s.url_resolved || s.url, no = httpsPage && isHttp(u);
+        const bits = [s.state, s.country].filter(Boolean).join(", ");
+        const tech = [s.codec, s.bitrate ? s.bitrate + "k" : ""].filter(Boolean).join(" ");
+        return `<button class="res ${no?"no":""}" data-i="${i}"><b>${esc((s.name||"").trim())}</b><small>${esc(bits)}${tech ? " · " + esc(tech) : ""}${no ? " · http only, won't play here" : ""}</small></button>`;
+      }).join("") : `<div class="res-note">No matches. Try a shorter name, or paste the stream URL below.</div>`;
+    }catch(err){
+      if(my === findSeq) $("#fResults").innerHTML = `<div class="res-note">Couldn't reach Radio Browser. Paste the stream URL below instead.</div>`;
+    }
+  }, 350);
+};
+$("#fFind").onkeydown = e => { if(e.key === "Enter"){ e.preventDefault(); e.target.blur(); } };
+$("#fResults").onclick = e => {
+  const b = e.target.closest(".res"); if(!b) return;
+  const s = findHits[+b.dataset.i]; if(!s) return;
+  const url = s.url_resolved || s.url;
+  picked = {url, hls: !!s.hls};
+  $("#fName").value = (s.name || "").trim();
+  $("#fUrl").value = url;
+  $("#fSite").value = /^https?:\/\//i.test(s.homepage || "") ? s.homepage : "";
+  $("#fPlace").value = [s.state, s.country].filter(Boolean).join(", ");
+  $("#fLang").value = cap((s.language || "").trim());
+  $("#fCat").value = guessCat(s.tags);
+  $("#fReg").value = guessReg(s.countrycode);
+  $("#fResults").innerHTML = "";
+  $("#fMsg").textContent = httpsPage && isHttp(url) ? "That one is http-only and won't play on iPhone here." : "Filled in from Radio Browser. Check the details, then save.";
+};
+
+/* ---------- hidden stations ---------- */
+const hiddenBuiltIns = () => BUILT.filter(s => state.hidden.includes(s.id) && !state.custom.some(c => c.id === s.id) && !blocked(s));
+const hidSheet = $("#hidSheet");
+function paintHidden(){
+  const h = hiddenBuiltIns();
+  $("#hidList").innerHTML = h.length ? h.map(s => `<div class="hrow"><span>${esc(s.n)} <small style="color:var(--etch)">· ${esc(s.place)}</small></span><button class="pill" data-restore="${esc(s.id)}">Restore</button></div>`).join("")
+    : `<div class="res-note">Nothing hidden.</div>`;
+}
+$("#restoreBtn").onclick = () => { paintHidden(); hidSheet.showModal(); };
+$("#hidClose").onclick = () => hidSheet.close();
+$("#hidList").onclick = e => {
+  const b = e.target.closest("[data-restore]"); if(!b) return;
+  state.hidden = state.hidden.filter(x => x !== b.dataset.restore);
+  save(); render(); paint(); paintHidden();
+  if(!hiddenBuiltIns().length) hidSheet.close();
+};
+
+/* ---------- export / import ---------- */
+const io = $("#ioSheet");
+$("#expBtn").onclick = () => {
+  $("#ioTitle").textContent = "Export library";
+  $("#ioHelp").textContent = "Stations you added or edited, kept stations, your listening history, and anything you hid. Copy it somewhere safe.";
+  $("#ioText").value = JSON.stringify(state, null, 2);
+  $("#ioGo").hidden = true; $("#ioMsg").textContent = "";
+  io.showModal(); $("#ioText").select();
+};
+$("#impBtn").onclick = () => {
+  $("#ioTitle").textContent = "Import library";
+  $("#ioHelp").textContent = "Paste an export. This replaces what's on this phone.";
+  $("#ioText").value = ""; $("#ioGo").hidden = false; $("#ioMsg").textContent = "";
+  io.showModal();
+};
+$("#ioClose").onclick = () => io.close();
+$("#ioGo").onclick = () => {
+  let d;
+  try{ d = JSON.parse($("#ioText").value); }catch(e){ $("#ioMsg").textContent = "That isn't valid JSON — check for a truncated paste."; return; }
+  if(!d || typeof d !== "object" || Array.isArray(d)){ $("#ioMsg").textContent = "That doesn't look like a Receiver export."; return; }
+  logLive = null;
+  state = normalise(d);
+  save(); render(); paint(); io.close();
+};
+
+render();
+paint();
+</script>
+</body>
+</html>
