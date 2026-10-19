@@ -1,0 +1,43 @@
+name: Stream check
+
+on:
+  schedule:
+    - cron: "17 11 * * 1"   # Mondays, 11:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Probe streams
+        id: probe
+        continue-on-error: true
+        run: node scripts/check-streams.mjs docs/mobile.html
+      - name: Open or update the issue
+        if: steps.probe.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n=$(gh issue list --label stream-check --state open --json number --jq '.[0].number')
+          if [ -n "$n" ]; then
+            gh issue comment "$n" --body-file stream-report.md
+          else
+            gh label create stream-check --color d9a441 --description "Automated stream health check" 2>/dev/null || true
+            gh issue create --title "Receiver: streams failing" --label stream-check --body-file stream-report.md
+          fi
+      - name: Close the issue when everything plays
+        if: steps.probe.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for n in $(gh issue list --label stream-check --state open --json number --jq '.[].number'); do
+            gh issue close "$n" --comment "All streams returned audio on $(date -u +%F)."
+          done
